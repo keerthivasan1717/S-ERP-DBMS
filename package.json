@@ -1,0 +1,42 @@
+{
+  "name": "s-erp-dbms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sustainable Enterprise Resource Planning DBMS",
+  "scripts": {
+    "dev:server": "npm run build:server && node dist/server/index.js",
+    "build:server": "node node_modules/typescript/bin/tsc -p server/tsconfig.json",
+    "test": "ESBUILD_BINARY_PATH=${ESBUILD_BINARY_PATH:-/home/keerthivasan/.local/share/esbuild-0.21.5/node_modules/.bin/esbuild} node node_modules/vitest/vitest.mjs run",
+    "lint": "node node_modules/eslint/bin/eslint.js . --ext .ts,.tsx",
+    "typecheck": "node node_modules/typescript/bin/tsc --noEmit && node node_modules/typescript/bin/tsc -p server/tsconfig.json --noEmit",
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "format": "node node_modules/prettier/bin/prettier.cjs --write .",
+    "report": "node node_modules/typescript/bin/tsc scripts/report.ts --module NodeNext --moduleResolution NodeNext --target ES2022 --outDir dist/scripts && node dist/scripts/report.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.12.0",
+    "pg": "^8.13.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/marked": "^4.3.2",
+    "@types/node": "^20.17.14",
+    "@types/pg": "^8.11.11",
+    "@types/supertest": "^6.0.2",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.1",
+    "md-to-pdf": "^5.2.4",
+    "prettier": "^3.4.2",
+    "puppeteer": "^22.15.0",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}

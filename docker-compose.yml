@@ -1,0 +1,45 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: serp_mysql
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-serp_root_password}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-serp}
+      MYSQL_USER: ${MYSQL_USER:-serp}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-serp_password}
+    ports:
+      - "${MYSQL_PORT:-3307}:3306"
+    volumes:
+      - serp_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD:-serp_root_password} || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: serp_postgres
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      POSTGRES_DB: ${PGDATABASE:-serp}
+      POSTGRES_USER: ${PGUSER:-serp}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-serp_password}
+    ports:
+      - "${PGPORT:-5434}:5432"
+    volumes:
+      - serp_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${PGUSER:-serp} -d $${PGDATABASE:-serp} || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  serp_mysql_data:
+  serp_postgres_data:
