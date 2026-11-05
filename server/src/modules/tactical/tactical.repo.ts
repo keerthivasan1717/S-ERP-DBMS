@@ -261,16 +261,21 @@ export class TacticalRepo {
 
   // Process-Resource assignment
   async assignResourceToProcess(processId: number, data: { resource_id: number; quantity: number; unit: string }) {
-    await this.db.execute(
-      'INSERT INTO process_resource (process_id, resource_id, quantity, unit) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE quantity = VALUES(quantity), unit = VALUES(unit)',
-      [processId, data.resource_id, data.quantity, data.unit]
-    ).catch(async () => {
-      // In PostgreSQL ON CONFLICT DO UPDATE
+    const existing = await this.db.one<any>(
+      'SELECT process_id FROM process_resource WHERE process_id = ? AND resource_id = ?',
+      [processId, data.resource_id]
+    );
+    if (existing) {
       await this.db.execute(
-        'INSERT INTO process_resource (process_id, resource_id, quantity, unit) VALUES (?, ?, ?, ?) ON CONFLICT (process_id, resource_id) DO UPDATE SET quantity = EXCLUDED.quantity, unit = EXCLUDED.unit',
+        'UPDATE process_resource SET quantity = ?, unit = ? WHERE process_id = ? AND resource_id = ?',
+        [data.quantity, data.unit, processId, data.resource_id]
+      );
+    } else {
+      await this.db.execute(
+        'INSERT INTO process_resource (process_id, resource_id, quantity, unit) VALUES (?, ?, ?, ?)',
         [processId, data.resource_id, data.quantity, data.unit]
       );
-    });
+    }
   }
 
   async removeResourceFromProcess(processId: number, resourceId: number) {

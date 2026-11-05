@@ -221,7 +221,7 @@ The following real screenshots were captured from the running application on `ht
 
 ### 5.2 Administrator Dashboard & User Management
 ![Administrator Dashboard](../screens/prototype/02_admin_dashboard.png)
-*Figure 2: Administrator dashboard displaying real-time system counts on PostgreSQL 16.*
+*Figure 2: Administrator dashboard displaying real-time system counts on MongoDB 6.0.*
 
 ![User Accounts Management](../screens/prototype/03_admin_users.png)
 *Figure 3: User Accounts ledger table with system roles, employee linkage, and status tags.*

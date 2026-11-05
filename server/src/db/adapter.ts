@@ -57,14 +57,6 @@ export function getMongoDb(): Db {
   return client.db(process.env.MONGO_DATABASE || 'serp');
 }
 
-/**
- * Transforms standard ? placeholders into PostgreSQL $1, $2, ... format
- */
-function translatePlaceholders(sql: string): string {
-  let index = 1;
-  return sql.replace(/\?/g, () => `$${index++}`);
-}
-
 class MySqlAdapter implements DbAdapter {
   readonly engine: EngineType = 'mysql';
 

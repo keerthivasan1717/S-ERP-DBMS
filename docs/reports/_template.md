@@ -5,7 +5,7 @@
 **Branch:** `{{GIT_BRANCH}}`  
 **Commit:** `{{GIT_COMMIT}}`  
 **Date:** {{DATE}}  
-**Database Engines Tested:** MySQL 8.4 & PostgreSQL 16  
+**Database Engines Tested:** SQL (MySQL 8.4) & NoSQL (MongoDB 6.0)  
 
 ---
 
@@ -40,13 +40,13 @@
 ---
 
 ## 4. Database Detail
-<!-- Tables, columns, constraints added, DDL excerpts, differences between MySQL and PostgreSQL -->
+<!-- Tables, columns, constraints added, DDL excerpts, differences between MySQL and MongoDB -->
 
 ### 4.1 Schema Additions & Structure
 <!-- Tables / Columns / Constraints -->
 
 ### 4.2 Engine Differences Observed
-| Feature / Behavior | MySQL 8.4 | PostgreSQL 16 |
+| Feature / Behavior | SQL (MySQL 8.4) | NoSQL (MongoDB 6.0) |
 |---|---|---|
 | ... | ... | ... |
 
@@ -74,7 +74,7 @@
 (Actual output from test / CLI run)
 ```
 
-### 7.2 PostgreSQL 16 Verification
+### 7.2 MongoDB 6.0 Verification
 ```text
 (Actual output from test / CLI run)
 ```

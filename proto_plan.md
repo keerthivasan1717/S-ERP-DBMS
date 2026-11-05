@@ -1,7 +1,7 @@
 # proto_plan.md — S-ERP DBMS Prototype
 
 > **Goal:** A working base model that demonstrates the complete data model,
-> dual-engine operation (MySQL + PostgreSQL), role-based access, and basic
+> dual-engine operation (SQL / MySQL + NoSQL / MongoDB), role-based access, and basic
 > CRUD for every entity in the ER diagram. Not a polished product.
 
 Ground rules from `GEMINI.md` still apply (milestone gate, PDF, both engines,
@@ -52,7 +52,7 @@ Everything from M0 is complete: repo, Docker Compose, TypeScript pipeline,
 Combines full-plan milestones M1 + M2 into one.
 
 **Schema & seed (from M1):**
-- [ ] `db/mysql/schema.sql` and `db/postgres/schema.sql` — all 17 tables
+- [ ] `db/mysql/schema.sql` and `db/mongodb/init.js` — all 17 tables
       from `plan.md` §3 plus the 7 bridge/gap tables from §4 (G1–G9).
 - [ ] `scripts/migrate.ts` — runs the DDL against the chosen engine.
 - [ ] `scripts/seed.ts` — idempotent, `--reset` flag. Seed data per §5:
@@ -66,9 +66,8 @@ Combines full-plan milestones M1 + M2 into one.
 
 **Database adapter (from M2):**
 - [ ] `server/src/db/adapter.ts` — single interface (`query`, `one`, `many`,
-      `insert`, `tx`) with MySQL and PostgreSQL implementations.
-      Placeholder translation (`?` ↔ `$n`), per-engine connection pools.
-- [ ] The adapter is the *only* module that imports `pg` or `mysql2`.
+      `insert`, `tx`) with MySQL and MongoDB implementations (bridged via AlaSQL).
+- [ ] The adapter is the *only* module that imports `mongodb` or `mysql2`.
 
 **Auth (from M2):**
 - [ ] `POST /api/auth/login` — accepts `{ engine, username, password }`.
@@ -83,7 +82,7 @@ Combines full-plan milestones M1 + M2 into one.
 - `er-check` passes on both engines.
 - Row counts match between engines after seeding.
 - Login works for all 4 demo accounts on both engines.
-- A MySQL-session request never touches PostgreSQL data (and vice versa).
+- A MySQL-session request never touches MongoDB data (and vice versa).
 - `npm run check` passes.
 
 **PDF P1:** table-by-table description, G1–G9 decisions, adapter design,
@@ -102,7 +101,7 @@ every subsequent screen.
 - [ ] Layout: header (system name + engine label), left sidebar grouped
       by role, content area.
 - [ ] **Login page** per §7: left block with "S-ERP" title, right form
-      with database radio selector (`SQL (MySQL)` / `PostgreSQL`), each
+      with database radio selector (`SQL (MySQL)` / `NoSQL (MongoDB)`), each
       showing live status from `GET /api/engines/status`. Username,
       password, "Sign in" button, plain-text errors.
 - [ ] Role-based sidebar navigation — show only links the role can access.

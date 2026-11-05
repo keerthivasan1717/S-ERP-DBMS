@@ -104,3 +104,4 @@ captureM7Screens()
     console.error(e);
     process.exit(1);
   });
+

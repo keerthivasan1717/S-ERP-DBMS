@@ -309,7 +309,7 @@ async function seedData(exec: (sql: string, params: any[]) => Promise<any>): Pro
   );
   const task2 = await exec(
     'INSERT INTO project_task (project_id, name, description, status, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?)',
-    [projId, 'Dual-Engine Schema Deployment', 'Configure and verify schemas on MySQL 8.4 and PostgreSQL 16', 'Completed', '2026-05-01', '2026-06-30']
+    [projId, 'Dual-Engine Schema Deployment', 'Configure and verify schemas on SQL (MySQL 8.4) and NoSQL (MongoDB 6.0)', 'Completed', '2026-05-01', '2026-06-30']
   );
   const task3 = await exec(
     'INSERT INTO project_task (project_id, name, description, status, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?)',
@@ -431,7 +431,7 @@ async function seedData(exec: (sql: string, params: any[]) => Promise<any>): Pro
   // 15. Decisions (3 decisions: Strategic, Tactical, Operational)
   const dec1 = await exec(
     'INSERT INTO decision (title, description, decision_level, date, created_by, project_id, process_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    ['Adopt Dual-Database Architecture', 'Standardize on MySQL and PostgreSQL interchangeability for client flexibility', 'Strategic', '2026-02-10', empStrat, projId, null]
+    ['Adopt Dual-Database Architecture', 'Standardize on SQL (MySQL 8.4) and NoSQL (MongoDB 6.0) interchangeability for client flexibility', 'Strategic', '2026-02-10', empStrat, projId, null]
   );
   const dec2 = await exec(
     'INSERT INTO decision (title, description, decision_level, date, created_by, project_id, process_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
