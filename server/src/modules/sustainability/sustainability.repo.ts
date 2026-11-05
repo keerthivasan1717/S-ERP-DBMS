@@ -65,18 +65,28 @@ export class SustainabilityRepo {
   async listReports() {
     return this.db.query<any>(
       `SELECT r.report_id, r.title, r.type, r.generated_by, r.created_at, r.file_path,
-              e.name AS generated_by_name
+              e.name AS generated_by_name,
+              ip.phase_id, ip.name AS phase_name
        FROM report r
        JOIN employee e ON r.generated_by = e.emp_id
+       LEFT JOIN phase_report pr ON r.report_id = pr.report_id
+       LEFT JOIN implementation_phase ip ON pr.phase_id = ip.phase_id
        ORDER BY r.created_at DESC`
     );
   }
 
-  async createReport(data: { title: string; type: 'Sustainability' | 'Performance'; generated_by: number; file_path?: string }) {
-    return this.db.insert(
+  async createReport(data: { title: string; type: 'Sustainability' | 'Performance'; generated_by: number; file_path?: string; phase_id?: number | null }) {
+    const reportId = await this.db.insert(
       'INSERT INTO report (title, type, generated_by, file_path) VALUES (?, ?, ?, ?)',
       [data.title, data.type, data.generated_by, data.file_path || null],
       'report_id'
     );
+    if (data.phase_id) {
+      await this.db.execute(
+        'INSERT INTO phase_report (phase_id, report_id) VALUES (?, ?)',
+        [data.phase_id, reportId]
+      );
+    }
+    return reportId;
   }
 }

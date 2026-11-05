@@ -390,6 +390,118 @@ describe('S-ERP CRUD Modules & Dual-Engine Parity', () => {
         }
       });
 
+      // M7: Resources & Process Allocation
+      it('Tactical Manager can manage resources and allocate to business process', async () => {
+        // Create Resource
+        const createRes = await request(app)
+          .post('/api/tactical/resources')
+          .set('Cookie', tacticalCookie)
+          .send({
+            type: 'Material',
+            name: `Test Raw Steel Batch ${Date.now()}`,
+            description: 'Recycled high-tensile steel billets',
+            unit: 'metric_tons',
+          });
+        expect(createRes.status).toBe(201);
+        const resourceId = createRes.body.resource_id;
+        expect(resourceId).toBeDefined();
+
+        // Allocate Resource to Business Process 1
+        const allocRes = await request(app)
+          .post('/api/tactical/processes/1/resources')
+          .set('Cookie', tacticalCookie)
+          .send({
+            resource_id: resourceId,
+            quantity: 50.5,
+            unit: 'metric_tons',
+          });
+        expect(allocRes.status).toBe(201);
+
+        // Verify Process lists the resource
+        const procList = await request(app)
+          .get('/api/tactical/processes')
+          .set('Cookie', tacticalCookie);
+        expect(procList.status).toBe(200);
+        const proc1 = procList.body.find((p: any) => p.process_id === 1);
+        expect(proc1).toBeDefined();
+        expect(proc1.resources.some((r: any) => r.resource_id === resourceId)).toBe(true);
+
+        // Remove resource from process
+        const deallocRes = await request(app)
+          .delete(`/api/tactical/processes/1/resources/${resourceId}`)
+          .set('Cookie', tacticalCookie);
+        expect(deallocRes.status).toBe(200);
+
+        // Delete Resource
+        const delRes = await request(app)
+          .delete(`/api/tactical/resources/${resourceId}`)
+          .set('Cookie', tacticalCookie);
+        expect(delRes.status).toBe(200);
+      });
+
+      // M7: Decisional Paradigm & Risk Linkage (Strategic & Tactical decisions, risk linking)
+      it('Decisional paradigm: Strategic Manager can log Strategic decision linked to risk (G3)', async () => {
+        const stratDec = await request(app)
+          .post('/api/decisions')
+          .set('Cookie', strategicCookie)
+          .send({
+            title: `Strategic Carbon Divestment ${Date.now()}`,
+            description: 'Phasing out scope 1 heavy fuel oil burners by Q3',
+            decision_level: 'Strategic',
+            date: '2026-11-01',
+            riskIds: [1],
+          });
+        expect(stratDec.status).toBe(201);
+        const decId = stratDec.body.decision_id;
+        expect(decId).toBeDefined();
+
+        // Inspect detail & verify linked risk
+        const detail = await request(app)
+          .get(`/api/decisions/${decId}`)
+          .set('Cookie', strategicCookie);
+        expect(detail.status).toBe(200);
+        expect(detail.body.decision_level).toBe('Strategic');
+        expect(Array.isArray(detail.body.risks)).toBe(true);
+        expect(detail.body.risks.some((r: any) => r.risk_id === 1)).toBe(true);
+
+        // Cleanup decision
+        const db = getAdapter(engine);
+        await db.execute('DELETE FROM decision_risk WHERE decision_id = ?', [decId]);
+        await db.execute('DELETE FROM decision WHERE decision_id = ?', [decId]);
+      });
+
+      // M7: Implementation Phase Report Archival & Retrieval (G5)
+      it('Implementation Phase Report Archival and Retrieval on both engines (G5)', async () => {
+        const reportTitle = `Audit Phase 1 ESG Verification ${Date.now()}`;
+        const createRep = await request(app)
+          .post('/api/sustainability/reports')
+          .set('Cookie', tacticalCookie)
+          .send({
+            title: reportTitle,
+            type: 'Performance',
+            phase_id: 1,
+            file_path: '/docs/reports/generated/phase1_audit.md',
+          });
+        expect(createRep.status).toBe(201);
+        const repId = createRep.body.report_id;
+        expect(repId).toBeDefined();
+
+        // Fetch reports list and verify phase link
+        const repList = await request(app)
+          .get('/api/sustainability/reports')
+          .set('Cookie', tacticalCookie);
+        expect(repList.status).toBe(200);
+        const found = repList.body.find((r: any) => r.report_id === repId);
+        expect(found).toBeDefined();
+        expect(found.phase_id).toBe(1);
+        expect(found.phase_name).toBeDefined();
+
+        // Cleanup report
+        const db = getAdapter(engine);
+        await db.execute('DELETE FROM phase_report WHERE report_id = ?', [repId]);
+        await db.execute('DELETE FROM report WHERE report_id = ?', [repId]);
+      });
+
       // Dashboard analytics endpoint per role
       it(`Returns role-specific dashboard metrics on ${engine}`, async () => {
         const resStrat = await request(app)

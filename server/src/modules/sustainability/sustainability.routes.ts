@@ -52,6 +52,7 @@ sustainabilityRouter.post('/reports', requireRole('Administrator', 'Strategic Ma
     title: z.string().min(1),
     type: z.enum(['Sustainability', 'Performance']),
     file_path: z.string().optional(),
+    phase_id: z.number().nullable().optional(),
   });
   const data = schema.parse(req.body);
   const repo = new SustainabilityRepo(req.db!);
