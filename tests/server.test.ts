@@ -13,16 +13,15 @@ describe('S-ERP Server API', () => {
 
   it('GET /api/engines/status returns structured status for both engines', async () => {
     const response = await request(app).get('/api/engines/status');
-    // May be 200 (if containers running) or 503 (if containers not yet started)
     expect([200, 503]).toContain(response.status);
     expect(response.body).toHaveProperty('timestamp');
     expect(response.body).toHaveProperty('mysql');
-    expect(response.body).toHaveProperty('postgres');
+    expect(response.body).toHaveProperty('mongodb');
 
     expect(response.body.mysql).toHaveProperty('engine', 'mysql');
     expect(response.body.mysql).toHaveProperty('reachable');
 
-    expect(response.body.postgres).toHaveProperty('engine', 'postgres');
-    expect(response.body.postgres).toHaveProperty('reachable');
+    expect(response.body.mongodb).toHaveProperty('engine', 'mongodb');
+    expect(response.body.mongodb).toHaveProperty('reachable');
   });
 });

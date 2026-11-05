@@ -1,12 +1,11 @@
 import mysql, { Pool as MySqlPool, PoolConnection as MySqlConnection } from 'mysql2/promise';
-import pg, { Pool as PgPool, PoolClient as PgClient } from 'pg';
 import { MongoClient, Db } from 'mongodb';
 import alasql from 'alasql';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-export type EngineType = 'mysql' | 'mongodb' | 'postgres';
+export type EngineType = 'mysql' | 'mongodb';
 
 export interface DbAdapter {
   readonly engine: EngineType;
@@ -21,7 +20,6 @@ export interface DbAdapter {
 
 // Global Connection Pools
 let mysqlPool: MySqlPool | null = null;
-let pgPool: PgPool | null = null;
 let mongoClient: MongoClient | null = null;
 
 export function getMySqlPool(): MySqlPool {
@@ -39,20 +37,6 @@ export function getMySqlPool(): MySqlPool {
     });
   }
   return mysqlPool;
-}
-
-export function getPgPool(): PgPool {
-  if (!pgPool) {
-    pgPool = new pg.Pool({
-      host: process.env.PGHOST || '127.0.0.1',
-      port: Number(process.env.PGPORT) || 5434,
-      user: process.env.PGUSER || 'serp',
-      password: process.env.PGPASSWORD || 'serp_password',
-      database: process.env.PGDATABASE || 'serp',
-      max: 10,
-    });
-  }
-  return pgPool;
 }
 
 export function getMongoClient(): MongoClient {
@@ -320,77 +304,12 @@ export class MongoAdapter implements DbAdapter {
   }
 }
 
-class PgAdapter implements DbAdapter {
-  readonly engine: EngineType = 'postgres';
-
-  constructor(private poolOrClient: PgPool | PgClient) {}
-
-  async query<T = any>(sql: string, params: unknown[] = []): Promise<T[]> {
-    const pgSql = translatePlaceholders(sql);
-    const res = await this.poolOrClient.query(pgSql, params);
-    return res.rows as T[];
-  }
-
-  async one<T = any>(sql: string, params: unknown[] = []): Promise<T | null> {
-    const rows = await this.query<T>(sql, params);
-    return rows.length > 0 ? rows[0] : null;
-  }
-
-  async many<T = any>(sql: string, params: unknown[] = []): Promise<T[]> {
-    return this.query<T>(sql, params);
-  }
-
-  async insert(sql: string, params: unknown[] = [], keyColumn?: string): Promise<number> {
-    let pgSql = translatePlaceholders(sql);
-    if (!pgSql.toUpperCase().includes('RETURNING')) {
-      pgSql += keyColumn ? ` RETURNING ${keyColumn}` : ' RETURNING *';
-    }
-    const res = await this.poolOrClient.query(pgSql, params);
-    if (res.rows.length === 0) return 0;
-    const row = res.rows[0];
-    if (keyColumn && row[keyColumn] !== undefined) {
-      return Number(row[keyColumn]);
-    }
-    const firstKey = Object.keys(row).find((k) => k.endsWith('_id') || k === 'id') || Object.keys(row)[0];
-    return Number(row[firstKey]);
-  }
-
-  async execute(sql: string, params: unknown[] = []): Promise<{ affectedRows: number }> {
-    const pgSql = translatePlaceholders(sql);
-    const res = await this.poolOrClient.query(pgSql, params);
-    return { affectedRows: res.rowCount || 0 };
-  }
-
-  async tx<T>(fn: (db: DbAdapter) => Promise<T>): Promise<T> {
-    if ('connect' in this.poolOrClient) {
-      const client = await (this.poolOrClient as PgPool).connect();
-      await client.query('BEGIN');
-      const txAdapter = new PgAdapter(client);
-      try {
-        const res = await fn(txAdapter);
-        await client.query('COMMIT');
-        return res;
-      } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-      } finally {
-        client.release();
-      }
-    } else {
-      return fn(this);
-    }
-  }
-}
-
 export function getAdapter(engine: EngineType): DbAdapter {
   if (engine === 'mysql') {
     return new MySqlAdapter(getMySqlPool());
   }
   if (engine === 'mongodb') {
     return new MongoAdapter(getMongoDb());
-  }
-  if (engine === 'postgres') {
-    return new PgAdapter(getPgPool());
   }
   throw new Error(`Unsupported database engine: ${engine}`);
 }
@@ -403,9 +322,5 @@ export async function closePools(): Promise<void> {
   if (mongoClient) {
     await mongoClient.close();
     mongoClient = null;
-  }
-  if (pgPool) {
-    await pgPool.end();
-    pgPool = null;
   }
 }

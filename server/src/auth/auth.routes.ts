@@ -8,7 +8,7 @@ import { authenticate } from './middleware.js';
 export const authRouter = Router();
 
 const loginSchema = z.object({
-  engine: z.enum(['mysql', 'mongodb', 'postgres']),
+  engine: z.enum(['mysql', 'mongodb']),
   username: z.string().min(1, 'Username is required'),
   password: z.string().min(1, 'Password is required'),
 });

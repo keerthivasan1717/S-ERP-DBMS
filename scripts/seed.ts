@@ -1,14 +1,11 @@
 import bcrypt from 'bcryptjs';
 import mysql from 'mysql2/promise';
-import pg from 'pg';
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 import { MongoAdapter } from '../server/src/db/adapter.js';
-import { migrateMySQL, migratePostgres, migrateMongo } from './migrate.js';
+import { migrateMySQL, migrateMongo } from './migrate.js';
 
 dotenv.config();
-
-const { Pool: PgPool } = pg;
 
 export interface SeedOptions {
   reset?: boolean;
@@ -98,55 +95,6 @@ export async function seedMongo(options: SeedOptions = {}): Promise<void> {
     console.log('[MongoDB] Seeding completed.');
   } finally {
     await client.close();
-  }
-}
-
-export async function seedPostgres(options: SeedOptions = {}): Promise<void> {
-  if (options.reset) {
-    await migratePostgres();
-  }
-
-  const pool = new PgPool({
-    host: process.env.PGHOST || '127.0.0.1',
-    port: Number(process.env.PGPORT) || 5434,
-    user: process.env.PGUSER || 'serp',
-    password: process.env.PGPASSWORD || 'serp_password',
-    database: process.env.PGDATABASE || 'serp',
-  });
-
-  try {
-    console.log('[PostgreSQL] Seeding database...');
-
-    if (!options.reset) {
-      const tables = [
-        'phase_report', 'decision_risk', 'process_indicator', 'organization_dimension',
-        'process_resource', 'employee_project', 'indicator_measurement', 'report',
-        'implementation_phase', 'risk', 'decision', 'business_process', 'resource',
-        'app_user', 'sustainability_indicator', 'sustainability_dimension',
-        'project_task', 'project', 'employee', 'department', 'organization'
-      ];
-      await pool.query(`TRUNCATE TABLE ${tables.join(', ')} RESTART IDENTITY CASCADE`);
-    }
-
-    await seedData(async (sql: string, params: any[] = []) => {
-      // Convert ? to $1, $2, ...
-      let paramIdx = 1;
-      let pgSql = sql.replace(/\?/g, () => `$${paramIdx++}`);
-      if (pgSql.trim().toUpperCase().startsWith('INSERT') && !pgSql.toUpperCase().includes('RETURNING')) {
-        pgSql += ' RETURNING *';
-      }
-      const res = await pool.query(pgSql, params);
-      if (res.rows.length > 0) {
-        const firstRow = res.rows[0];
-        const idKey = Object.keys(firstRow).find(k => k.endsWith('_id') || k === 'id');
-        return idKey ? firstRow[idKey] : res.rowCount;
-      }
-      return res.rowCount;
-    });
-
-    console.log('[PostgreSQL] Seeding completed.');
-  } finally {
-    await pool.end();
   }
 }
 
@@ -518,13 +466,11 @@ async function main(): Promise<void> {
 
   if (engine === 'mysql') {
     await seedMySQL({ reset });
-  } else if (engine === 'postgres') {
-    await seedPostgres({ reset });
   } else if (engine === 'mongodb') {
     await seedMongo({ reset });
   } else {
     await seedMySQL({ reset });
-    await seedPostgres({ reset });
+    await seedMongo({ reset });
   }
 }
 
