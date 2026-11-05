@@ -65,51 +65,55 @@ docker compose ps
 npm install --ignore-scripts
 ```
 
-### Step 4: Run Typecheck, Lint, and Tests
+### Step 4: Run Migrations and Seed Both Engines
+```bash
+# Apply schemas to MySQL 8.4 and PostgreSQL 16
+npm run migrate
+
+# Seed demo dataset and accounts across both engines
+npm run seed
+
+# Verify schema and row count parity
+npm run er-check
+```
+
+### Step 5: Run Typecheck, Lint, and Tests
 ```bash
 npm run check
 ```
-This runs TypeScript typechecking (`tsc`), ESLint, and the Vitest test suite.
+Runs TypeScript typechecking (`tsc`), ESLint, and Vitest testing parity across both database engines.
 
-### Step 5: Start the API Server
+### Step 6: Build and Launch the Application
 ```bash
+# Build server and web bundle
+npm run build
+
+# Start the unified server on port 3000
 npm run dev:server
 ```
-The server will start on `http://localhost:3000`. You can probe the database engines status:
-```bash
-curl http://localhost:3000/api/engines/status
-```
-
-### Step 6: Generate Milestone PDF Reports
-```bash
-npm run report -- M0
-```
-Generates `docs/reports/M0-foundations.pdf` using the S-ERP palette and typography, formatted for A4 with commit metadata and page numbers.
+Access the application at `http://localhost:3000`. You can select either **SQL (MySQL 8.4)** or **PostgreSQL 16** right on the sign-in screen.
 
 ---
 
 ## 4. Demo Accounts & Credentials
 
-*(Development and evaluation only — created in M1 seed)*
+*(Created during database seeding with bcrypt cost 12)*
 
-| Role | Username | Password |
-|---|---|---|
-| **Administrator** | `admin` | `Admin#2026` |
-| **Strategic Manager** | `strategic` | `Strat#2026` |
-| **Tactical Manager** | `tactical` | `Tact#2026` |
-| **Operational User** | `operator` | `Oper#2026` |
+| Role | Username | Password | Permitted Actions |
+|---|---|---|---|
+| **Administrator** | `admin` | `Admin#2026` | Full administrative control: User management, Departments, Employees, Organization profile |
+| **Strategic Manager** | `strategic` | `Strat#2026` | Strategic decisions, Triple bottom line sustainability overview, Reports archive |
+| **Tactical Manager** | `tactical` | `Tact#2026` | Projects, Work tasks, Roadmap phases, Risk logs, Business processes, Resource tracking |
+| **Operational User** | `operator` | `Oper#2026` | Assigned work tasks, Daily sustainability telemetry & field measurement logging |
 
 ---
 
-## 5. Milestone Plan Overview
+## 5. Prototype Implementation (P0–P4)
 
-- **M0:** Foundations and report tool (TypeScript, Docker Compose, engine status endpoint, PDF report generator).
-- **M1:** Schema, seed, and live ER conformance checks on both MySQL and PostgreSQL.
-- **M2:** Repository database layer, session auth, and role-based access control.
-- **M3:** Ledger/field-notebook app shell, theme tokens, and engine-switching login screen.
-- **M4:** Organization structure and administrative modules.
-- **M5:** Project management, tasks, implementation phases, and risks.
-- **M6:** Sustainability dimensions, indicators, and time-series measurements.
-- **M7:** Business processes, resource tracking, and strategic/tactical/operational decisions.
-- **M8:** Role-tailored dashboards and report generation.
-- **M9:** Hardening, query plan analysis, parity verification, and final submission package.
+The prototype delivers a fully functional base model covering:
+- **P0:** Foundations, dual Docker containers, engine status endpoint.
+- **P1:** Complete dual-engine schema (21 tables), database adapter with parameter translation (`?` ↔ `$1`), signed session auth, and demo seed data.
+- **P2:** Field-notebook / ledger design system, tokens, engine selector login, and role-differentiated sidebar navigation.
+- **P3:** Plain CRUD across all entities (Users, Departments, Employees, Organization, Projects, Tasks, Phases, Risks, Processes, Resources, Decisions, Indicators, Measurements, Reports).
+- **P4:** Role-tailored home dashboards displaying live database metrics.
+

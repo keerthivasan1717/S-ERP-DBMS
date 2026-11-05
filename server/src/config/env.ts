@@ -15,12 +15,19 @@ const envSchema = z.object({
   MYSQL_USER: z.string().default('serp'),
   MYSQL_PASSWORD: z.string().default('serp_password'),
 
-  // PostgreSQL 16
+  // PostgreSQL 16 (optional)
   PGHOST: z.string().default('127.0.0.1'),
   PGPORT: z.coerce.number().default(5434),
   PGDATABASE: z.string().default('serp'),
   PGUSER: z.string().default('serp'),
   PGPASSWORD: z.string().default('serp_password'),
+
+  // MongoDB 6.0
+  MONGO_HOST: z.string().default('127.0.0.1'),
+  MONGO_PORT: z.coerce.number().default(27017),
+  MONGO_DATABASE: z.string().default('serp'),
+  MONGO_USER: z.string().default('serp'),
+  MONGO_PASSWORD: z.string().default('serp_password'),
 });
 
 export const env = envSchema.parse(process.env);

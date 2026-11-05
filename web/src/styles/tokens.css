@@ -1,0 +1,24 @@
+:root {
+  --paper: #F3F0E8;
+  --surface: #FBFAF6;
+  --surface-hover: #ECE7DC;
+  --ink: #1E2421;
+  --ink-soft: #5B635E;
+  --line: #D4CFC2;
+  --line-strong: #A8A294;
+  --accent: #A9461F;
+  --accent-hover: #8D3A19;
+  --accent-light: #F6EDE8;
+  --moss: #4B5D3A;
+  --ochre: #B58A1E;
+  --slate: #3F5B73;
+  --danger: #9B2C2C;
+  --danger-bg: #FDF2F2;
+
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+
+  --radius: 2px;
+  --border: 1px solid var(--line);
+}

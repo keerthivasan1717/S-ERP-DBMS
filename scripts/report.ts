@@ -15,6 +15,7 @@ const SLUG_MAP: Record<string, string> = {
   M7: 'M7-processes',
   M8: 'M8-dashboards',
   M9: 'M9-final',
+  PROTOTYPE: 'PROTOTYPE-system-reference',
 };
 
 async function main() {
@@ -81,10 +82,21 @@ async function main() {
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   });
 
+  // Embed local images as base64 data URIs so Puppeteer renders them reliably
+  const embeddedHtml = htmlDocument.replace(/<img\s+src="([^"]+)"/g, (match, src) => {
+    if (src.startsWith('data:') || src.startsWith('http')) return match;
+    const absPath = path.resolve(reportsDir, src);
+    if (fs.existsSync(absPath)) {
+      const ext = path.extname(absPath).slice(1) || 'png';
+      const b64 = fs.readFileSync(absPath).toString('base64');
+      return `<img src="data:image/${ext};base64,${b64}"`;
+    }
+    return match;
+  });
+
   try {
     const page = await browser.newPage();
-    // Resolve relative assets relative to reports directory
-    await page.setContent(htmlDocument, {
+    await page.setContent(embeddedHtml, {
       waitUntil: 'networkidle0',
     });
 

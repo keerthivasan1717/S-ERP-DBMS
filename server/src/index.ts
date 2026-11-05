@@ -5,7 +5,7 @@ const server = app.listen(env.PORT, () => {
   console.log(`S-ERP Server listening on port ${env.PORT} (mode: ${env.NODE_ENV})`);
   console.log(`Engines configured:`);
   console.log(`- MySQL 8.4: ${env.MYSQL_HOST}:${env.MYSQL_PORT}/${env.MYSQL_DATABASE}`);
-  console.log(`- PostgreSQL 16: ${env.PGHOST}:${env.PGPORT}/${env.PGDATABASE}`);
+  console.log(`- MongoDB 6.0: ${env.MONGO_HOST}:${env.MONGO_PORT}/${env.MONGO_DATABASE}`);
 });
 
 process.on('SIGTERM', () => {
