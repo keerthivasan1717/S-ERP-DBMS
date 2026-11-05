@@ -518,13 +518,13 @@ async function main(): Promise<void> {
 
   if (engine === 'mysql') {
     await seedMySQL({ reset });
-  } else if (engine === 'mongodb') {
-    await seedMongo({ reset });
   } else if (engine === 'postgres') {
     await seedPostgres({ reset });
+  } else if (engine === 'mongodb') {
+    await seedMongo({ reset });
   } else {
     await seedMySQL({ reset });
-    await seedMongo({ reset });
+    await seedPostgres({ reset });
   }
 }
 

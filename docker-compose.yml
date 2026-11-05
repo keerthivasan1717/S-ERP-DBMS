@@ -20,21 +20,21 @@ services:
       retries: 10
       start_period: 15s
 
-  mongodb:
-    image: mongo:6.0
-    container_name: serp_mongo
+  postgres:
+    image: postgres:16-alpine
+    container_name: serp_postgres
     restart: unless-stopped
     mem_limit: 512m
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-serp}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-serp_password}
-      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-serp}
+      POSTGRES_DB: ${PGDATABASE:-serp}
+      POSTGRES_USER: ${PGUSER:-serp}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-serp_password}
     ports:
-      - "${MONGO_PORT:-27017}:27017"
+      - "${PGPORT:-5434}:5432"
     volumes:
-      - serp_mongo_data:/data/db
+      - serp_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "mongosh --eval 'db.runCommand({ping: 1})' || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U $${PGUSER:-serp} -d $${PGDATABASE:-serp} || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -42,4 +42,4 @@ services:
 
 volumes:
   serp_mysql_data:
-  serp_mongo_data:
+  serp_postgres_data:

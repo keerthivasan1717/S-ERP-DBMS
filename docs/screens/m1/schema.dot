@@ -1,0 +1,671 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="#F3F0E8", fontname="IBM Plex Sans", pad="0.5", nodesep="0.5", ranksep="0.8"];
+  node [shape=none, fontname="IBM Plex Sans", fontsize=10];
+  edge [fontname="IBM Plex Sans", fontsize=9, color="#5B635E", fontcolor="#1E2421", arrowsize=0.8];
+
+  "app_user" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>APP_USER</b></font></td></tr>
+      <tr>
+        <td align="left" port="user_id"><font color="#1E2421">user_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="username"><font color="#1E2421">username</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(100)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="password_hash"><font color="#1E2421">password_hash</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="app_role"><font color="#1E2421">app_role</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(50)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="emp_id"><font color="#1E2421">emp_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="is_active"><font color="#1E2421">is_active</font></td>
+        <td align="left"><font color="#5B635E">TINYINT(1)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="created_at"><font color="#1E2421">created_at</font></td>
+        <td align="left"><font color="#5B635E">DATETIME</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "business_process" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>BUSINESS_PROCESS</b></font></td></tr>
+      <tr>
+        <td align="left" port="process_id"><font color="#1E2421">process_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="name"><font color="#1E2421">name</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="description"><font color="#1E2421">description</font></td>
+        <td align="left"><font color="#5B635E">TEXT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="department_id"><font color="#1E2421">department_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "decision" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>DECISION</b></font></td></tr>
+      <tr>
+        <td align="left" port="decision_id"><font color="#1E2421">decision_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="title"><font color="#1E2421">title</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="description"><font color="#1E2421">description</font></td>
+        <td align="left"><font color="#5B635E">TEXT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="decision_level"><font color="#1E2421">decision_level</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(50)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="date"><font color="#1E2421">date</font></td>
+        <td align="left"><font color="#5B635E">DATE</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="created_by"><font color="#1E2421">created_by</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="project_id"><font color="#1E2421">project_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="process_id"><font color="#1E2421">process_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "decision_risk" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#3F5B73" align="center" colspan="3"><font color="#FBFAF6"><b>DECISION_RISK</b></font></td></tr>
+      <tr>
+        <td align="left" port="decision_id"><font color="#1E2421">decision_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="risk_id"><font color="#1E2421">risk_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+    </table>
+  >];
+
+  "department" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>DEPARTMENT</b></font></td></tr>
+      <tr>
+        <td align="left" port="dept_id"><font color="#1E2421">dept_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="name"><font color="#1E2421">name</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="description"><font color="#1E2421">description</font></td>
+        <td align="left"><font color="#5B635E">TEXT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="parent_dept_id"><font color="#1E2421">parent_dept_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="org_id"><font color="#1E2421">org_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "employee" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>EMPLOYEE</b></font></td></tr>
+      <tr>
+        <td align="left" port="emp_id"><font color="#1E2421">emp_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="name"><font color="#1E2421">name</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="email"><font color="#1E2421">email</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="role"><font color="#1E2421">role</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(100)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="department_id"><font color="#1E2421">department_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="created_at"><font color="#1E2421">created_at</font></td>
+        <td align="left"><font color="#5B635E">DATETIME</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "employee_project" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#3F5B73" align="center" colspan="3"><font color="#FBFAF6"><b>EMPLOYEE_PROJECT</b></font></td></tr>
+      <tr>
+        <td align="left" port="emp_id"><font color="#1E2421">emp_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="project_id"><font color="#1E2421">project_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="role"><font color="#1E2421">role</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(100)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="allocation_percentage"><font color="#1E2421">allocation_percentage</font></td>
+        <td align="left"><font color="#5B635E">DECIMAL(5,2)</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "implementation_phase" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>IMPLEMENTATION_PHASE</b></font></td></tr>
+      <tr>
+        <td align="left" port="phase_id"><font color="#1E2421">phase_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="name"><font color="#1E2421">name</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="description"><font color="#1E2421">description</font></td>
+        <td align="left"><font color="#5B635E">TEXT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="start_date"><font color="#1E2421">start_date</font></td>
+        <td align="left"><font color="#5B635E">DATE</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="end_date"><font color="#1E2421">end_date</font></td>
+        <td align="left"><font color="#5B635E">DATE</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="project_id"><font color="#1E2421">project_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "indicator_measurement" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>INDICATOR_MEASUREMENT</b></font></td></tr>
+      <tr>
+        <td align="left" port="measurement_id"><font color="#1E2421">measurement_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="indicator_id"><font color="#1E2421">indicator_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="value"><font color="#1E2421">value</font></td>
+        <td align="left"><font color="#5B635E">DECIMAL(14,4)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="measurement_date"><font color="#1E2421">measurement_date</font></td>
+        <td align="left"><font color="#5B635E">DATE</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="source"><font color="#1E2421">source</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="recorded_by"><font color="#1E2421">recorded_by</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "organization" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>ORGANIZATION</b></font></td></tr>
+      <tr>
+        <td align="left" port="org_id"><font color="#1E2421">org_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="name"><font color="#1E2421">name</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="description"><font color="#1E2421">description</font></td>
+        <td align="left"><font color="#5B635E">TEXT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="address"><font color="#1E2421">address</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="created_at"><font color="#1E2421">created_at</font></td>
+        <td align="left"><font color="#5B635E">DATETIME</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "organization_dimension" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#3F5B73" align="center" colspan="3"><font color="#FBFAF6"><b>ORGANIZATION_DIMENSION</b></font></td></tr>
+      <tr>
+        <td align="left" port="org_id"><font color="#1E2421">org_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="dimension_id"><font color="#1E2421">dimension_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+    </table>
+  >];
+
+  "phase_report" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#3F5B73" align="center" colspan="3"><font color="#FBFAF6"><b>PHASE_REPORT</b></font></td></tr>
+      <tr>
+        <td align="left" port="phase_id"><font color="#1E2421">phase_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="report_id"><font color="#1E2421">report_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+    </table>
+  >];
+
+  "process_indicator" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#3F5B73" align="center" colspan="3"><font color="#FBFAF6"><b>PROCESS_INDICATOR</b></font></td></tr>
+      <tr>
+        <td align="left" port="process_id"><font color="#1E2421">process_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="indicator_id"><font color="#1E2421">indicator_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+    </table>
+  >];
+
+  "process_resource" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#3F5B73" align="center" colspan="3"><font color="#FBFAF6"><b>PROCESS_RESOURCE</b></font></td></tr>
+      <tr>
+        <td align="left" port="process_id"><font color="#1E2421">process_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="resource_id"><font color="#1E2421">resource_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="quantity"><font color="#1E2421">quantity</font></td>
+        <td align="left"><font color="#5B635E">DECIMAL(12,2)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="unit"><font color="#1E2421">unit</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(50)</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "project" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>PROJECT</b></font></td></tr>
+      <tr>
+        <td align="left" port="project_id"><font color="#1E2421">project_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="name"><font color="#1E2421">name</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="description"><font color="#1E2421">description</font></td>
+        <td align="left"><font color="#5B635E">TEXT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="start_date"><font color="#1E2421">start_date</font></td>
+        <td align="left"><font color="#5B635E">DATE</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="end_date"><font color="#1E2421">end_date</font></td>
+        <td align="left"><font color="#5B635E">DATE</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="status"><font color="#1E2421">status</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(50)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="department_id"><font color="#1E2421">department_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "project_task" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>PROJECT_TASK</b></font></td></tr>
+      <tr>
+        <td align="left" port="task_id"><font color="#1E2421">task_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="project_id"><font color="#1E2421">project_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="name"><font color="#1E2421">name</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="description"><font color="#1E2421">description</font></td>
+        <td align="left"><font color="#5B635E">TEXT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="status"><font color="#1E2421">status</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(50)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="start_date"><font color="#1E2421">start_date</font></td>
+        <td align="left"><font color="#5B635E">DATE</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="end_date"><font color="#1E2421">end_date</font></td>
+        <td align="left"><font color="#5B635E">DATE</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "report" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>REPORT</b></font></td></tr>
+      <tr>
+        <td align="left" port="report_id"><font color="#1E2421">report_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="title"><font color="#1E2421">title</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="type"><font color="#1E2421">type</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(50)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="generated_by"><font color="#1E2421">generated_by</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="created_at"><font color="#1E2421">created_at</font></td>
+        <td align="left"><font color="#5B635E">DATETIME</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="file_path"><font color="#1E2421">file_path</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(500)</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "resource" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>RESOURCE</b></font></td></tr>
+      <tr>
+        <td align="left" port="resource_id"><font color="#1E2421">resource_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="type"><font color="#1E2421">type</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(50)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="name"><font color="#1E2421">name</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="description"><font color="#1E2421">description</font></td>
+        <td align="left"><font color="#5B635E">TEXT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="unit"><font color="#1E2421">unit</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(50)</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "risk" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>RISK</b></font></td></tr>
+      <tr>
+        <td align="left" port="risk_id"><font color="#1E2421">risk_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="title"><font color="#1E2421">title</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="description"><font color="#1E2421">description</font></td>
+        <td align="left"><font color="#5B635E">TEXT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="level"><font color="#1E2421">level</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(50)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="project_id"><font color="#1E2421">project_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "sustainability_dimension" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>SUSTAINABILITY_DIMENSION</b></font></td></tr>
+      <tr>
+        <td align="left" port="dimension_id"><font color="#1E2421">dimension_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="name"><font color="#1E2421">name</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(50)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="description"><font color="#1E2421">description</font></td>
+        <td align="left"><font color="#5B635E">TEXT</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "sustainability_indicator" [label=<
+    <table border="1" cellborder="0" cellspacing="0" bgcolor="#FBFAF6" color="#D4CFC2" style="rounded">
+      <tr><td bgcolor="#1E2421" align="center" colspan="3"><font color="#FBFAF6"><b>SUSTAINABILITY_INDICATOR</b></font></td></tr>
+      <tr>
+        <td align="left" port="indicator_id"><font color="#1E2421">indicator_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"><font color="#A9461F"><b>PK</b></font></td>
+      </tr>
+      <tr>
+        <td align="left" port="name"><font color="#1E2421">name</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(255)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="description"><font color="#1E2421">description</font></td>
+        <td align="left"><font color="#5B635E">TEXT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="unit"><font color="#1E2421">unit</font></td>
+        <td align="left"><font color="#5B635E">VARCHAR(50)</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="dimension_id"><font color="#1E2421">dimension_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+      <tr>
+        <td align="left" port="department_id"><font color="#1E2421">department_id</font></td>
+        <td align="left"><font color="#5B635E">INT</font></td>
+        <td align="right"></td>
+      </tr>
+    </table>
+  >];
+
+  "app_user":"emp_id" -> "employee":"emp_id";
+  "business_process":"department_id" -> "department":"dept_id";
+  "decision":"created_by" -> "employee":"emp_id";
+  "decision":"process_id" -> "business_process":"process_id";
+  "decision":"project_id" -> "project":"project_id";
+  "decision_risk":"decision_id" -> "decision":"decision_id";
+  "decision_risk":"risk_id" -> "risk":"risk_id";
+  "department":"org_id" -> "organization":"org_id";
+  "department":"parent_dept_id" -> "department":"dept_id";
+  "employee":"department_id" -> "department":"dept_id";
+  "employee_project":"emp_id" -> "employee":"emp_id";
+  "employee_project":"project_id" -> "project":"project_id";
+  "implementation_phase":"project_id" -> "project":"project_id";
+  "indicator_measurement":"indicator_id" -> "sustainability_indicator":"indicator_id";
+  "indicator_measurement":"recorded_by" -> "app_user":"user_id";
+  "organization_dimension":"dimension_id" -> "sustainability_dimension":"dimension_id";
+  "organization_dimension":"org_id" -> "organization":"org_id";
+  "phase_report":"phase_id" -> "implementation_phase":"phase_id";
+  "phase_report":"report_id" -> "report":"report_id";
+  "process_indicator":"indicator_id" -> "sustainability_indicator":"indicator_id";
+  "process_indicator":"process_id" -> "business_process":"process_id";
+  "process_resource":"process_id" -> "business_process":"process_id";
+  "process_resource":"resource_id" -> "resource":"resource_id";
+  "project":"department_id" -> "department":"dept_id";
+  "project_task":"project_id" -> "project":"project_id";
+  "report":"generated_by" -> "employee":"emp_id";
+  "risk":"project_id" -> "project":"project_id";
+  "sustainability_indicator":"department_id" -> "department":"dept_id";
+  "sustainability_indicator":"dimension_id" -> "sustainability_dimension":"dimension_id";
+}

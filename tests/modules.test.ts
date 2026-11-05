@@ -8,7 +8,7 @@ describe('S-ERP CRUD Modules & Dual-Engine Parity', () => {
     await closePools();
   });
 
-  const engines = ['mysql', 'mongodb'] as const;
+  const engines = ['mysql', 'postgres'] as const;
 
   for (const engine of engines) {
     describe(`Parity & Security on Engine: ${engine}`, () => {

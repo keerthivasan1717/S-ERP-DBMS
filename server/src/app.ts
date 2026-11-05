@@ -35,7 +35,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 app.get('/api/engines/status', async (_req: Request, res: Response) => {
   try {
     const status = await getEnginesStatus();
-    const reachable = status.mysql.reachable && status.mongodb.reachable;
+    const reachable = status.mysql.reachable && status.postgres.reachable;
     res.status(reachable ? 200 : 503).json(status);
   } catch (err: unknown) {
     res.status(500).json({
