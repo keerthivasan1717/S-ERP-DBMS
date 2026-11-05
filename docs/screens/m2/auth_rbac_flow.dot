@@ -1,0 +1,48 @@
+digraph AuthFlow {
+  graph [rankdir=TB, bgcolor="#F8F9FA", fontname="DejaVu Sans", pad="0.4", nodesep="0.5", ranksep="0.5"];
+  node [shape=box, fontname="DejaVu Sans", fontsize=10, style="filled,rounded", fillcolor="#FFFFFF", color="#495057", penwidth=1.2];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#495057", penwidth=1.2];
+
+  req [label="POST /api/auth/login\n{ engine, username, password }", fillcolor="#E9ECEF", width=3.0];
+  rate_check [label="Sliding Window Rate Limiter\nAttempts in 15min window > 10?", shape=diamond, fillcolor="#FFF9C4"];
+  rate_block [label="429 Too Many Requests\nRetry-After: <seconds>", fillcolor="#FFCDD2"];
+  
+  db_lookup [label="Query app_user Table/Collection\nSELECT password_hash, app_role, is_active FROM app_user\nvia getAdapter(engine)", fillcolor="#E8F5E9"];
+  user_exists [label="User exists & active?", shape=diamond, fillcolor="#FFF9C4"];
+  err_401 [label="401 Unauthorized / 403 Deactivated", fillcolor="#FFCDD2"];
+
+  pw_check [label="bcrypt.compare(password, password_hash)\nCost factor: 12", shape=diamond, fillcolor="#FFF9C4"];
+  sign_token [label="Generate HMAC-SHA256 Token\nPayload: { userId, username, role, engine, empId }", fillcolor="#E1F5FE"];
+  set_cookie [label="Set-Cookie: serp_session=<token>\nHttpOnly, SameSite=Lax, Max-Age=24h\nReturn JSON User Profile", fillcolor="#C8E6C9"];
+
+  subgraph cluster_rbac {
+    label="Subsequent Authenticated Requests";
+    fontsize=11;
+    fontname="DejaVu Sans";
+    color="#ADB5BD";
+    style="rounded,dashed";
+    bgcolor="#FFFFFF";
+
+    protected_req [label="GET /api/admin/* or /api/tactical/*\nCookie: serp_session=..."];
+    verify_token [label="authenticate middleware\nVerify JWT signature & extract req.user"];
+    role_check [label="requireRole(['Administrator'])", shape=diamond, fillcolor="#FFF9C4"];
+    err_403 [label="403 Forbidden\nInsufficient permissions", fillcolor="#FFCDD2"];
+    exec_handler [label="Execute Handler with Adapter\ngetAdapter(req.user.engine)", fillcolor="#C8E6C9"];
+  }
+
+  req -> rate_check;
+  rate_check -> rate_block [label="Yes (>10)"];
+  rate_check -> db_lookup [label="No (<=10)"];
+  db_lookup -> user_exists;
+  user_exists -> err_401 [label="No"];
+  user_exists -> pw_check [label="Yes"];
+  pw_check -> err_401 [label="Invalid hash"];
+  pw_check -> sign_token [label="Match"];
+  sign_token -> set_cookie;
+
+  set_cookie -> protected_req [style="dashed", label="client stores cookie"];
+  protected_req -> verify_token;
+  verify_token -> role_check;
+  role_check -> err_403 [label="Role not allowed"];
+  role_check -> exec_handler [label="Role authorized"];
+}
