@@ -1,15 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { api, ApiError } from '../api/client.js';
+import React, { useEffect, useState, useMemo } from 'react';
+import { api } from '../api/client.js';
 import { DataTable, Column } from '../components/DataTable.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
 
+interface Department {
+  dept_id: number;
+  name: string;
+  description?: string;
+  parent_dept_id?: number | null;
+  parent_name?: string | null;
+  employee_count: number;
+  org_id: number;
+}
+
 export const DepartmentsPage: React.FC = () => {
-  const [departments, setDepartments] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  const [editingDept, setEditingDept] = useState<any | null>(null);
+  const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [parentDeptId, setParentDeptId] = useState<number | ''>('');
@@ -39,7 +49,7 @@ export const DepartmentsPage: React.FC = () => {
     setShowModal(true);
   };
 
-  const openEditModal = (d: any) => {
+  const openEditModal = (d: Department) => {
     setEditingDept(d);
     setName(d.name);
     setDescription(d.description || '');
@@ -85,11 +95,76 @@ export const DepartmentsPage: React.FC = () => {
     }
   };
 
-  const columns: Column<any>[] = [
+  // Build department hierarchy tree
+  const treeNodes = useMemo(() => {
+    const byParent: Record<number | string, Department[]> = {};
+    for (const d of departments) {
+      const pKey = d.parent_dept_id != null ? d.parent_dept_id : 'root';
+      if (!byParent[pKey]) byParent[pKey] = [];
+      byParent[pKey].push(d);
+    }
+    return byParent;
+  }, [departments]);
+
+  const renderTree = (parentId: number | string = 'root', depth = 0): React.ReactNode => {
+    const children = treeNodes[parentId] || [];
+    if (children.length === 0) return null;
+
+    return (
+      <div style={{ marginLeft: depth > 0 ? '1.5rem' : 0 }}>
+        {children.map((child) => (
+          <div key={child.dept_id} style={{ marginBottom: '0.4rem' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.6rem',
+                padding: '0.3rem 0.6rem',
+                backgroundColor: 'var(--surface)',
+                border: '1px solid var(--line)',
+                borderRadius: 'var(--radius)',
+                fontSize: '0.85rem',
+              }}
+            >
+              <span style={{ color: 'var(--ink-soft)', fontFamily: 'var(--font-mono)' }}>
+                #{child.dept_id}
+              </span>
+              <strong>{child.name}</strong>
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--ink-soft)',
+                  backgroundColor: 'var(--paper)',
+                  padding: '0.1rem 0.4rem',
+                  border: '1px solid var(--line)',
+                  borderRadius: 'var(--radius)',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                {child.employee_count} {Number(child.employee_count) === 1 ? 'employee' : 'employees'}
+              </span>
+              {child.description && (
+                <span style={{ fontSize: '0.78rem', color: 'var(--ink-soft)', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  — {child.description}
+                </span>
+              )}
+            </div>
+            {renderTree(child.dept_id, depth + 1)}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const columns: Column<Department>[] = [
     { key: 'dept_id', header: 'ID' },
     { key: 'name', header: 'Department Name' },
     { key: 'parent_name', header: 'Parent Department', render: (r) => r.parent_name || '—' },
-    { key: 'employee_count', header: 'Assigned Employees', render: (r) => <span className="font-mono">{r.employee_count}</span> },
+    {
+      key: 'employee_count',
+      header: 'Assigned Employees',
+      render: (r) => <span className="font-mono">{r.employee_count}</span>,
+    },
     { key: 'description', header: 'Description', render: (r) => r.description || '—' },
     {
       key: 'actions',
@@ -97,10 +172,10 @@ export const DepartmentsPage: React.FC = () => {
       sortable: false,
       render: (r) => (
         <div style={{ display: 'flex', gap: '0.4rem' }}>
-          <button className="btn btn-sm" onClick={() => openEditModal(r)}>
+          <button type="button" className="btn btn-sm" onClick={() => openEditModal(r)}>
             Edit
           </button>
-          <button className="btn btn-sm btn-danger" onClick={() => setDeleteId(r.dept_id)}>
+          <button type="button" className="btn btn-sm btn-danger" onClick={() => setDeleteId(r.dept_id)}>
             Delete
           </button>
         </div>
@@ -116,17 +191,34 @@ export const DepartmentsPage: React.FC = () => {
         <div>
           <h1>Departments</h1>
           <p style={{ color: 'var(--ink-soft)' }}>
-            Organizational hierarchy and department functional units.
+            Organizational hierarchy, functional units, and reporting lines.
           </p>
         </div>
-        <button className="btn btn-primary" onClick={openCreateModal}>
+        <button type="button" className="btn btn-primary" onClick={openCreateModal}>
           + Create Department
         </button>
       </div>
 
+      {/* Department Hierarchy Tree Visualization */}
+      <div
+        style={{
+          marginBottom: '1.5rem',
+          padding: '1.2rem',
+          backgroundColor: 'var(--paper)',
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--radius)',
+        }}
+      >
+        <div style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-soft)', marginBottom: '0.8rem', letterSpacing: '0.05em' }}>
+          Department Hierarchy Tree
+        </div>
+        {renderTree()}
+      </div>
+
+      {/* Dense Ledger Table */}
       <DataTable columns={columns} data={departments} />
 
-      {/* Modal */}
+      {/* Create / Edit Modal */}
       {showModal && (
         <div
           style={{
@@ -212,11 +304,11 @@ export const DepartmentsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={deleteId !== null}
         title="Delete Department"
-        message="Are you sure you want to delete this department? Deleting will fail if employees or child departments are still attached."
+        message="Are you sure you want to delete this department? Deleting will fail with HTTP 409 if employees or child departments are still attached."
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
       />
