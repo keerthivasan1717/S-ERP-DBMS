@@ -4,8 +4,16 @@ import bcrypt from 'bcryptjs';
 import { getAdapter, EngineType } from '../db/adapter.js';
 import { signToken } from './token.js';
 import { authenticate } from './middleware.js';
+import { createRateLimiter } from './rate-limiter.js';
 
 export const authRouter = Router();
+
+// Login rate limiter: 10 attempts per 15 minutes per IP/user
+const loginLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'Too many login attempts. Please try again later.',
+});
 
 const loginSchema = z.object({
   engine: z.enum(['mysql', 'mongodb']),
@@ -13,7 +21,7 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
-authRouter.post('/login', async (req: Request, res: Response) => {
+authRouter.post('/login', loginLimiter, async (req: Request, res: Response) => {
   const parseResult = loginSchema.safeParse(req.body);
   if (!parseResult.success) {
     res.status(400).json({ error: 'Invalid login payload', details: parseResult.error.format() });
