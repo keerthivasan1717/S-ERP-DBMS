@@ -58,3 +58,4 @@ db.decision_risk.createIndex({ decision_id: 1, risk_id: 1 }, { unique: true });
 db.phase_report.createIndex({ phase_id: 1, report_id: 1 }, { unique: true });
 
 print('[MongoDB] Successfully initialized 21 collections and performance indexes.');
+

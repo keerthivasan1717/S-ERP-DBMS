@@ -7,7 +7,7 @@ A database management application for a Sustainable Enterprise Resource Planning
 
 The system operates across **two interchangeable, independent database engines**:
 - **SQL (MySQL 8.4)**
-- **PostgreSQL 16**
+- **NoSQL (MongoDB 6.0)**
 
 The active database engine is selected by the user upon signing in.
 
@@ -17,10 +17,10 @@ The active database engine is selected by the user upon signing in.
 
 - **Backend Runtime:** Node.js 20 LTS with TypeScript (strict mode).
 - **HTTP API:** Express 4 with schema-enforced request validation via `zod`.
-- **Database Drivers:** Direct connection using `mysql2` and `pg`. **No ORM** is used; raw SQL demonstrates engine parity and differences.
+- **Database Drivers:** Direct connection using `mysql2` (relational SQL) and `mongodb` driver (document NoSQL with AlaSQL bridge). **No heavyweight ORM** is used.
 - **Port Mapping:**
   - MySQL 8.4: Container port `3306` mapped to host port `3307` (avoids conflict with native MySQL on port 3306).
-  - PostgreSQL 16: Container port `5432` mapped to host port `5434` (avoids conflict with native PostgreSQL on port 5432).
+  - MongoDB 6.0: Container port `27017` mapped to host port `27017`.
   - Ports can be customized in `.env`.
 - **Memory Limits:** Both containers are strictly capped at `512MB` RAM in `docker-compose.yml`.
 
@@ -67,11 +67,11 @@ npm install --ignore-scripts
 
 ### Step 4: Run Migrations and Seed Both Engines
 ```bash
-# Apply schemas to MySQL 8.4 and PostgreSQL 16
+# Apply schemas to MySQL 8.4 and initialize MongoDB 6.0 collections
 npm run migrate
 
 # Seed demo dataset and accounts across both engines
-npm run seed
+npm run seed -- --reset
 
 # Verify schema and row count parity
 npm run er-check
@@ -91,29 +91,28 @@ npm run build
 # Start the unified server on port 3000
 npm run dev:server
 ```
-Access the application at `http://localhost:3000`. You can select either **SQL (MySQL 8.4)** or **PostgreSQL 16** right on the sign-in screen.
+Access the application at `http://localhost:3000`. You can select either **SQL (MySQL 8.4)** or **NoSQL (MongoDB 6.0)** right on the sign-in screen.
 
 ---
 
 ## 4. Demo Accounts & Credentials
 
-*(Created during database seeding with bcrypt cost 12)*
+*(Created during database seeding with bcrypt)*
 
 | Role | Username | Password | Permitted Actions |
 |---|---|---|---|
-| **Administrator** | `admin` | `Admin#2026` | Full administrative control: User management, Departments, Employees, Organization profile |
-| **Strategic Manager** | `strategic` | `Strat#2026` | Strategic decisions, Triple bottom line sustainability overview, Reports archive |
-| **Tactical Manager** | `tactical` | `Tact#2026` | Projects, Work tasks, Roadmap phases, Risk logs, Business processes, Resource tracking |
-| **Operational User** | `operator` | `Oper#2026` | Assigned work tasks, Daily sustainability telemetry & field measurement logging |
+| **Administrator** | `admin` | `1234` | Full administrative control: User management, Departments, Employees, Organization profile |
+| **Strategic Manager** | `strategic` | `1234` | Strategic decisions, Triple bottom line sustainability overview, Reports archive |
+| **Tactical Manager** | `tactical` | `1234` | Projects, Work tasks, Roadmap phases, Risk logs, Business processes, Resource tracking |
+| **Operational User** | `operator` | `1234` | Assigned work tasks, Daily sustainability telemetry & field measurement logging |
 
 ---
 
 ## 5. Prototype Implementation (P0–P4)
 
-The prototype delivers a fully functional base model covering:
-- **P0:** Foundations, dual Docker containers, engine status endpoint.
-- **P1:** Complete dual-engine schema (21 tables), database adapter with parameter translation (`?` ↔ `$1`), signed session auth, and demo seed data.
+The application delivers a fully functional base model covering:
+- **P0:** Foundations, dual Docker containers (MySQL + MongoDB), engine status endpoint.
+- **P1:** Complete dual-engine entity model (21 entities/collections), database adapter layer, signed session auth, and demo seed data.
 - **P2:** Field-notebook / ledger design system, tokens, engine selector login, and role-differentiated sidebar navigation.
 - **P3:** Plain CRUD across all entities (Users, Departments, Employees, Organization, Projects, Tasks, Phases, Risks, Processes, Resources, Decisions, Indicators, Measurements, Reports).
 - **P4:** Role-tailored home dashboards displaying live database metrics.
-

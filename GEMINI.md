@@ -9,7 +9,7 @@ A database application for a **Sustainable Enterprise Resource Planning (S-ERP)*
 - the paper *Sustainable enterprise resource planning systems implementation: A framework development* (Chofreh, Goni, Klemeš, J. Clean. Prod. 198, 2018), and
 - the S-ERP ER diagram and use case diagram supplied by the owner (`docs/source/er-usecase.png`).
 
-The app runs on **two interchangeable database engines**: **MySQL ("SQL")** and **PostgreSQL**. The user picks the engine on the login page.
+The app runs on **two interchangeable database engines**: **MySQL ("SQL")** and **MongoDB ("NoSQL")**. The user picks the engine on the login page.
 
 The paper's two paradigms drive the whole design:
 
@@ -45,7 +45,7 @@ The PDF must describe **what was actually built**, in detail, not a marketing su
 1. Summary (what the milestone delivered, in plain words)
 2. Scope check — each checklist item from `plan.md` marked Done / Partial / Deferred, with a reason for anything not Done
 3. What was built — **every new or changed file** with a one-line purpose; new API endpoints (method, path, role, purpose); new screens
-4. Database detail — tables/columns/constraints added, DDL excerpts, and any difference between MySQL and PostgreSQL
+4. Database detail — tables/columns/constraints added, DDL/index excerpts, and any difference between MySQL and MongoDB
 5. How it works — the main flow(s) in short numbered steps
 6. Screenshots — real screenshots of the running app (saved in `docs/screens/m<n>/`), each with a caption
 7. Tests and evidence — commands run and their real output, for both engines
@@ -58,12 +58,12 @@ Footer on every page: project name, milestone, git commit hash, date. Never past
 
 ## 5. Database rules
 
-- **No ORM.** Use plain SQL through the `pg` and `mysql2` drivers. The SQL is part of what the project demonstrates.
-- Keep two schema files that define the same model: `db/mysql/schema.sql` and `db/postgres/schema.sql`. Same tables, same column names, same constraints. Only the syntax differs.
-- Names: `snake_case`, singular table names, exactly as in the ER diagram (e.g. `project_task`, `employee_project`). Do not rename diagram columns.
-- Every FK has an explicit `ON DELETE` rule and an index. Use `CHECK` constraints for the enumerated columns (list in `plan.md` §3) so both engines behave the same.
+- **No heavy ORM.** Use direct driver access through `mysql2` and `mongodb` (bridged via AlaSQL for unified query execution). The queries are part of what the project demonstrates.
+- Keep schema/initialization definitions that define the same model: `db/mysql/schema.sql` and `db/mongodb/init.js`. Same entities, same field names, same constraints.
+- Names: `snake_case`, singular table/collection names, exactly as in the ER diagram (e.g. `project_task`, `employee_project`). Do not rename diagram columns.
+- Every FK has an explicit `ON DELETE` rule and an index in MySQL, with matching referential checks in the adapter layer. Use `CHECK` constraints and collection indexes for enumerated fields so both engines behave the same.
 - Parameterised queries only. Never build SQL by string concatenation with user input.
-- All data access goes through the repository layer in `server/src/db/`. Route handlers never import `pg` or `mysql2` directly.
+- All data access goes through the repository layer in `server/src/db/`. Route handlers never import database drivers directly.
 - Any change to the model: edit **both** schema files, **both** seed files, and add a numbered migration in each `db/<engine>/migrations/`. Never edit an applied migration.
 - The two databases hold **separate, independent data**. Do not build sync between them.
 - Seed data is **demo data**. Label it as such in the UI and the reports. Never present invented numbers as real measurements.
@@ -101,7 +101,7 @@ Follow `plan.md` §7 exactly. The short version:
 - Both database containers get `mem_limit: 512m` in `docker-compose.yml`.
 - Do not keep extra browsers, watchers or dev servers running between tasks.
 - Do not add heavy tooling (no Electron, no Kubernetes, no large local AI models).
-- If Docker is unavailable, fall back to native MySQL and PostgreSQL services and document it.
+- If Docker is unavailable, fall back to native MySQL and MongoDB services and document it.
 
 ## 10. Things you must never do
 

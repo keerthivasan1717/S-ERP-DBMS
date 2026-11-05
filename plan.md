@@ -1,8 +1,8 @@
 # plan.md — S-ERP DBMS
 
-Build a working database application for a Sustainable Enterprise Resource Planning (S-ERP) system, running on **MySQL** and **PostgreSQL**, with the engine chosen at login. Ground rules are in `GEMINI.md`. Read that first.
+Build a working database application for a Sustainable Enterprise Resource Planning (S-ERP) system, running on **MySQL 8.4 (SQL)** and **MongoDB 6.0 (NoSQL)**, with the engine chosen at login. Ground rules are in `GEMINI.md`. Read that first.
 
-> **Assumption:** "SQL" on the login page means **MySQL 8.4**. The button is labelled `SQL (MySQL)`.
+> **Assumption:** "SQL" on the login page means **MySQL 8.4**. The buttons are labelled `SQL (MySQL)` and `NoSQL (MongoDB)`.
 
 ---
 
@@ -29,8 +29,8 @@ Put a one-page version of this table in the M0 PDF.
 |---|---|---|
 | Runtime | Node 20 LTS + TypeScript (strict) | One language for the whole app |
 | API | Express 4, `zod` for validation | Small and readable |
-| DB drivers | `mysql2` and `pg`, **no ORM** | Raw SQL is the point of a DBMS project |
-| Databases | MySQL 8.4, PostgreSQL 16, via `docker-compose.yml` (`mem_limit: 512m` each) | Reproducible; fits in 8 GB RAM |
+| DB drivers | `mysql2` and `mongodb` (with AlaSQL bridge), **no ORM** | Raw SQL and native collection operations |
+| Databases | MySQL 8.4, MongoDB 6.0, via `docker-compose.yml` (`mem_limit: 512m` each) | Reproducible; fits in 8 GB RAM |
 | Frontend | React 18 + Vite + TypeScript, hand-written CSS (CSS variables) | No UI kit, so it does not look templated |
 | Charts | `chart.js`, restyled to the theme | Simple, light |
 | Auth | `bcryptjs`, signed token in an `httpOnly` cookie | Enough for a course/demo system |
@@ -43,8 +43,8 @@ Repo layout:
 /
 ├─ GEMINI.md  plan.md  README.md  docker-compose.yml  .env.example
 ├─ db/
-│  ├─ mysql/     schema.sql  seed.sql  migrations/
-│  └─ postgres/  schema.sql  seed.sql  migrations/
+│  ├─ mysql/     schema.sql
+│  └─ mongodb/   init.js
 ├─ server/src/   config/ db/ auth/ modules/ routes/ middleware/ index.ts
 ├─ web/src/      pages/ components/ styles/ api/ main.tsx
 ├─ scripts/      migrate.ts  seed.ts  report.ts  er-check.ts
@@ -82,21 +82,21 @@ Implement these tables **exactly as drawn** in the ER diagram.
 
 Notes:
 - `report.generated_by` is drawn as an FK in the diagram; point it at `employee(emp_id)`.
-- Enumerated columns use `CHECK (col IN (...))` in **both** engines. Status columns for `project` and `project_task`: `Planned`, `Active`, `On Hold`, `Completed`.
-- Use integer identity keys: `AUTO_INCREMENT` in MySQL, `GENERATED ALWAYS AS IDENTITY` in PostgreSQL.
-- Dates: `DATE`. Timestamps: `DATETIME` (MySQL) / `TIMESTAMPTZ` (PostgreSQL).
-- Measurement `value`: `DECIMAL(14,4)` in both.
+- Enumerated columns use `CHECK (col IN (...))` in MySQL and matching schema validation / unique indexing in MongoDB. Status columns for `project` and `project_task`: `Planned`, `Active`, `On Hold`, `Completed`.
+- Use integer identity keys: `AUTO_INCREMENT` in MySQL, maintained integer IDs + native BSON `_id` in MongoDB.
+- Dates: `DATE`. Timestamps: `DATETIME` (MySQL) / ISO Date string (MongoDB).
+- Measurement `value`: `DECIMAL(14,4)` in MySQL / Double precision in MongoDB.
 
 ### Engine differences to document in M1
 
-| Topic | MySQL 8.4 | PostgreSQL 16 |
+| Topic | SQL (MySQL 8.4) | NoSQL (MongoDB 6.0) |
 |---|---|---|
-| Auto keys | `AUTO_INCREMENT` | `GENERATED ALWAYS AS IDENTITY` |
-| Placeholders | `?` | `$1, $2 …` |
-| Insert returning key | `insertId` | `RETURNING id` |
-| Timestamps | `DATETIME` | `TIMESTAMPTZ` |
-| Text compare | case-insensitive by default collation | case-sensitive (use `ILIKE` / `LOWER()`) |
-| Identifier quoting | backticks | double quotes (avoid quoting by using snake_case) |
+| Storage Unit | Normalized tables with typed columns | Flexible BSON document collections |
+| Auto keys | `AUTO_INCREMENT PRIMARY KEY` | Maintained integer ID + native `_id` |
+| Placeholders | `?` | Parameter array mapped via AlaSQL parser |
+| Constraint enforcement | Native `FOREIGN KEY` & `CHECK` | Unique indexes + Application Adapter validation |
+| Transactions | Native ACID transactions (`BEGIN`/`COMMIT`) | Client sessions (`withSession`) |
+| Query Execution | Native SQL execution via `mysql2` | SQL parsed and executed against collections via AlaSQL / Mongo query API |
 
 ---
 
@@ -201,9 +201,9 @@ One accent colour only. No gradients anywhere.
 
 **Login page (specific)**
 - Left: a plain block with the system name "S-ERP" and one line: "Sustainable Enterprise Resource Planning". Right: the form.
-- Above the credentials, a labelled **Database** selector with two radio-style options laid out side by side: `SQL (MySQL)` and `PostgreSQL`. Each option shows its host:port and a live status text ("reachable" / "not reachable") from `GET /api/engines/status`.
-- Username, password, one "Sign in" button. Errors in plain text under the form ("Wrong username or password", "PostgreSQL is not reachable").
-- The chosen engine is shown permanently in the app header (`Engine: PostgreSQL`) so the user always knows which database they are on. Signing out returns to the selector.
+- Above the credentials, a labelled **Database** selector with two radio-style options laid out side by side: `SQL (MySQL)` and `NoSQL (MongoDB)`. Each option shows its host:port and a live status text ("reachable" / "not reachable") from `GET /api/engines/status`.
+- Username, password, one "Sign in" button. Errors in plain text under the form ("Wrong username or password", "MongoDB is not reachable").
+- The chosen engine is shown permanently in the app header (`Engine: MySQL (SQL)` or `Engine: MongoDB (NoSQL)`) so the user always knows which database they are on. Signing out returns to the selector.
 
 **Self-check before showing any screen:** If it could be mistaken for a default AI-tool dashboard (gradient header, rounded cards with shadows, emoji icons, big stat tiles with sparkles), redo it.
 
@@ -215,7 +215,7 @@ Every milestone ends with the **gate in `GEMINI.md` §3–4**: acceptance checks
 
 ### M0 — Foundations and report tool
 - [ ] Repo, TypeScript config, ESLint, Prettier, `npm run check`
-- [ ] `docker-compose.yml` with MySQL 8.4 and PostgreSQL 16, memory-limited; `.env.example`
+- [ ] `docker-compose.yml` with MySQL 8.4 and MongoDB 6.0, memory-limited; `.env.example`
 - [ ] Copy the paper and the diagram image into `docs/source/`
 - [ ] `README.md` with clean-clone setup steps
 - [ ] **Report tool:** `docs/reports/_template.md`, `report.css` (same fonts/colours as the app), `npm run report -- M<n>` producing the PDF with footer (project, milestone, commit hash, date)
@@ -224,20 +224,20 @@ Every milestone ends with the **gate in `GEMINI.md` §3–4**: acceptance checks
 - **PDF M0:** setup, stack decisions, repo layout, the §1 table, how to run.
 
 ### M1 — Schema, seed and ER conformance (both engines)
-- [ ] `db/mysql/schema.sql` and `db/postgres/schema.sql` per §3 and §4
+- [ ] `db/mysql/schema.sql` and `db/mongodb/init.js` per §3 and §4
 - [ ] `scripts/migrate.ts`, `scripts/seed.ts` (idempotent, `--reset` flag)
 - [ ] Seed per §5 on both engines
-- [ ] `scripts/er-check.ts`: reads the live schema of each engine and compares tables, columns, PKs, FKs to an expected list built from §3/§4; prints a diff
+- [ ] `scripts/er-check.ts`: reads live schema of MySQL and collections of MongoDB and compares to expected list built from §3/§4; prints a diff
 - [ ] Export an ER diagram image generated from the real schema into `docs/screens/m1/`
-- **Acceptance:** `er-check` passes on both engines; row counts match between engines; all CHECK and FK constraints reject bad data (tests).
-- **PDF M1:** full table-by-table description, every constraint, the G1–G9 decisions, the MySQL vs PostgreSQL differences actually encountered, row counts.
+- **Acceptance:** `er-check` passes on both engines; row/doc counts match between engines; all CHECK/unique constraints reject bad data (tests).
+- **PDF M1:** full table/collection description, every constraint, the G1–G9 decisions, the MySQL vs MongoDB differences actually encountered, row/doc counts.
 
 ### M2 — Database layer, auth and roles
-- [ ] `server/src/db/` adapter: one interface (`query`, `one`, `many`, `insert`, `tx`) with a MySQL and a PostgreSQL implementation; placeholder translation; per-engine pools
+- [ ] `server/src/db/` adapter: one interface (`query`, `one`, `many`, `insert`, `tx`) with a MySQL and a MongoDB implementation; per-engine pools
 - [ ] Login endpoint takes `{engine, username, password}`; cookie token carries the engine
 - [ ] Middleware: authenticate, load role, require role; consistent error format
 - [ ] Rate limit on login
-- **Acceptance:** same API test suite passes on both engines; a MySQL session can never read PostgreSQL data; wrong role gets 403; tests cover all four roles.
+- **Acceptance:** same API test suite passes on both engines; a MySQL session can never read MongoDB data; wrong role gets 403; tests cover all four roles.
 - **PDF M2:** adapter design with code excerpts, auth flow (Authenticate → Load User Role), endpoint list, security notes.
 
 ### M3 — App shell and login page
@@ -297,7 +297,7 @@ Every milestone ends with the **gate in `GEMINI.md` §3–4**: acceptance checks
 
 ## 9. Definition of done (every milestone)
 
-1. Acceptance checks pass on MySQL **and** PostgreSQL, with output saved.
+1. Acceptance checks pass on MySQL **and** MongoDB, with output saved.
 2. `npm run check` passes.
 3. Real screenshots captured for every new screen.
 4. Report filled in honestly, PDF generated and opened.
