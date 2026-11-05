@@ -115,3 +115,4 @@ execSync(`dot -Tpng ${path.join(outDir, 'auth_rbac_flow.dot')} -o ${path.join(ou
 console.log('Successfully generated M2 visual artifacts in docs/screens/m2/:');
 console.log(' - adapter_architecture.png');
 console.log(' - auth_rbac_flow.png');
+

@@ -17,6 +17,13 @@ interface LoginPageProps {
   onLoginSuccess: (user: any) => void;
 }
 
+const DEMO_ROLES = [
+  { label: 'Administrator', username: 'admin', desc: 'Org, users & depts' },
+  { label: 'Strategic Manager', username: 'strategic', desc: 'Indicators & policy' },
+  { label: 'Tactical Manager', username: 'tactical', desc: 'Projects & tasks' },
+  { label: 'Operational User', username: 'operator', desc: 'Measurements & logs' },
+];
+
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [engine, setEngine] = useState<'mysql' | 'mongodb'>('mysql');
   const [username, setUsername] = useState('admin');
@@ -65,6 +72,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }
   };
 
+  const handleQuickFill = (roleUser: string) => {
+    setUsername(roleUser);
+    setPassword('1234');
+    setErrorMessage(null);
+  };
+
   return (
     <div
       style={{
@@ -73,7 +86,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         backgroundColor: 'var(--paper)',
       }}
     >
-      {/* Left Block */}
+      {/* Left Overview Block */}
       <div
         style={{
           flex: '1',
@@ -85,11 +98,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           backgroundColor: 'var(--surface)',
         }}
       >
-        <div style={{ maxWidth: '420px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '440px', margin: '0 auto' }}>
           <h1
             style={{
               fontFamily: 'var(--font-serif)',
-              fontSize: '2.4rem',
+              fontSize: '2.5rem',
               color: 'var(--accent)',
               marginBottom: '0.4rem',
               fontWeight: 700,
@@ -120,18 +133,50 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           >
             <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Dual-Engine Database Architecture</p>
             <p style={{ color: 'var(--ink-soft)', margin: 0 }}>
-              The system operates interchangeably across MySQL 8.4 (SQL) and MongoDB 6.0 (NoSQL). Select your target
-              database engine below to initiate a role-authenticated session.
+              The system operates interchangeably across <strong>MySQL 8.4 (Relational SQL)</strong> and{' '}
+              <strong>MongoDB 6.0 (Document NoSQL)</strong>. Select your database engine to bind your session to that
+              engine's connection pool.
             </p>
-            <div style={{ marginTop: '0.8rem', fontSize: '0.8rem', color: 'var(--ink-soft)', borderTop: '1px dashed var(--line)', paddingTop: '0.6rem' }}>
-              <p style={{ margin: '0 0 0.3rem 0' }}><strong>Demo accounts:</strong> admin, tactical, strategic, operator</p>
-              <p style={{ margin: 0 }}><strong>Password:</strong> <code style={{ backgroundColor: 'var(--surface)', padding: '0.15rem 0.4rem', borderRadius: '3px', border: '1px solid var(--line)' }}>1234</code></p>
+
+            <div
+              style={{
+                marginTop: '1rem',
+                borderTop: '1px dashed var(--line)',
+                paddingTop: '0.8rem',
+              }}
+            >
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--ink-soft)', marginBottom: '0.5rem' }}>
+                DEMO ACCOUNTS (PASSWORD: 1234)
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+                {DEMO_ROLES.map((r) => (
+                  <button
+                    key={r.username}
+                    type="button"
+                    className="btn btn-sm"
+                    onClick={() => handleQuickFill(r.username)}
+                    style={{
+                      justifyContent: 'flex-start',
+                      textAlign: 'left',
+                      fontSize: '0.78rem',
+                      padding: '0.35rem 0.5rem',
+                      backgroundColor: username === r.username ? 'var(--surface-hover)' : 'var(--surface)',
+                      borderColor: username === r.username ? 'var(--accent)' : 'var(--line)',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{r.label}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--ink-soft)' }}>{r.username}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right Form */}
+      {/* Right Login Form */}
       <div
         style={{
           flex: '1.2',
@@ -147,9 +192,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <form onSubmit={handleSubmit}>
             {/* Database Engine Selector */}
             <div style={{ marginBottom: '1.5rem' }}>
-              <label>Database</label>
+              <label>Database Engine</label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
-                {/* MySQL Selector */}
+                {/* MySQL Option */}
                 <div
                   onClick={() => setEngine('mysql')}
                   style={{
@@ -177,14 +222,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     {loadingStatus ? (
                       <span style={{ color: 'var(--ink-soft)' }}>checking...</span>
                     ) : status?.mysql?.reachable ? (
-                      <span style={{ color: 'var(--moss)', fontWeight: 600 }}>reachable</span>
+                      <span style={{ color: 'var(--moss)', fontWeight: 600 }}>● reachable</span>
                     ) : (
-                      <span style={{ color: 'var(--danger)', fontWeight: 600 }}>not reachable</span>
+                      <span style={{ color: 'var(--danger)', fontWeight: 600 }}>○ offline</span>
                     )}
                   </div>
                 </div>
 
-                {/* MongoDB Selector */}
+                {/* MongoDB Option */}
                 <div
                   onClick={() => setEngine('mongodb')}
                   style={{
@@ -212,16 +257,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     {loadingStatus ? (
                       <span style={{ color: 'var(--ink-soft)' }}>checking...</span>
                     ) : status?.mongodb?.reachable ? (
-                      <span style={{ color: 'var(--moss)', fontWeight: 600 }}>reachable</span>
+                      <span style={{ color: 'var(--moss)', fontWeight: 600 }}>● reachable</span>
                     ) : (
-                      <span style={{ color: 'var(--danger)', fontWeight: 600 }}>not reachable</span>
+                      <span style={{ color: 'var(--danger)', fontWeight: 600 }}>○ offline</span>
                     )}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Username */}
+            {/* Username Input */}
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <label htmlFor="username">Username</label>
               <input
@@ -230,11 +275,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
+                placeholder="Enter username"
               />
             </div>
 
-            {/* Password */}
+            {/* Password Input */}
             <div className="form-group" style={{ marginBottom: '1.5rem' }}>
               <label htmlFor="password">Password</label>
               <input
@@ -243,11 +288,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
+                placeholder="Enter password"
               />
             </div>
 
-            {/* Error notice in plain text */}
+            {/* Error Banner */}
             {errorMessage && (
               <div
                 style={{
