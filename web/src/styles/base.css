@@ -269,3 +269,24 @@ table.ledger-table tr:hover td {
   font-weight: 600;
   color: var(--ink);
 }
+
+/* Print styles for printable ledger reports (M8) */
+@media print {
+  header, aside, .btn, button, .no-print {
+    display: none !important;
+  }
+  body, main {
+    background-color: #ffffff !important;
+    color: #111111 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  .panel, .table-container, table {
+    border: 1px solid #cccccc !important;
+    box-shadow: none !important;
+  }
+  .stat-box {
+    border: 1px solid #aaaaaa !important;
+  }
+}

@@ -502,8 +502,8 @@ describe('S-ERP CRUD Modules & Dual-Engine Parity', () => {
         await db.execute('DELETE FROM report WHERE report_id = ?', [repId]);
       });
 
-      // Dashboard analytics endpoint per role
-      it(`Returns role-specific dashboard metrics on ${engine}`, async () => {
+      // Dashboard analytics endpoint per role & M8 Benchmark
+      it(`Returns role-specific dashboard metrics and AlaSQL benchmark on ${engine}`, async () => {
         const resStrat = await request(app)
           .get('/api/dashboard')
           .set('Cookie', strategicCookie);
@@ -511,6 +511,31 @@ describe('S-ERP CRUD Modules & Dual-Engine Parity', () => {
         expect(resStrat.status).toBe(200);
         expect(resStrat.body.role).toBe('Strategic Manager');
         expect(resStrat.body).toHaveProperty('stats');
+        expect(resStrat.body.stats).toHaveProperty('primaryDimension');
+        expect(resStrat.body.stats).toHaveProperty('dimensionStats');
+        expect(resStrat.body.stats.dimensionStats.length).toBeGreaterThanOrEqual(3);
+
+        const resTact = await request(app)
+          .get('/api/dashboard')
+          .set('Cookie', tacticalCookie);
+        expect(resTact.status).toBe(200);
+        expect(resTact.body.stats).toHaveProperty('deptWorkload');
+
+        const resOper = await request(app)
+          .get('/api/dashboard')
+          .set('Cookie', operatorCookie);
+        expect(resOper.status).toBe(200);
+        expect(resOper.body.stats).toHaveProperty('recentMeasurements');
+
+        // M8: Engine parity & latency benchmark endpoint
+        const resBench = await request(app)
+          .get('/api/dashboard/benchmark')
+          .set('Cookie', strategicCookie);
+        expect(resBench.status).toBe(200);
+        expect(resBench.body.engine).toBe(engine);
+        expect(resBench.body).toHaveProperty('sql');
+        expect(resBench.body).toHaveProperty('mongoEquivalent');
+        expect(typeof resBench.body.latencyMs).toBe('number');
       });
     });
   }
