@@ -217,6 +217,91 @@ describe('S-ERP CRUD Modules & Dual-Engine Parity', () => {
         expect(project.status).toBe(200);
         expect(project.body).toHaveProperty('tasks');
         expect(Array.isArray(project.body.tasks)).toBe(true);
+        expect(project.body).toHaveProperty('phases');
+        expect(Array.isArray(project.body.phases)).toBe(true);
+        expect(project.body).toHaveProperty('risks');
+        expect(Array.isArray(project.body.risks)).toBe(true);
+        expect(project.body).toHaveProperty('members');
+        expect(Array.isArray(project.body.members)).toBe(true);
+      });
+
+      // M5: 100% Employee Project Allocation Rule Check
+      it('Enforces 100% maximum allocation per employee across projects', async () => {
+        // Emp 4 (Operational user) already has 60% on project 1
+        // Attempting to assign 50% on project 2 -> Total 60% + 50% = 110% -> must reject with 400
+        const overAllocRes = await request(app)
+          .post('/api/tactical/projects/2/members')
+          .set('Cookie', tacticalCookie)
+          .send({
+            emp_id: 4,
+            role: 'Lead Architect',
+            allocation_percentage: 50,
+          });
+
+        expect(overAllocRes.status).toBe(400);
+        expect(overAllocRes.body.error).toContain('cannot exceed 100%');
+
+        // Allocating within remainder (30%) -> Total 60% + 30% = 90% -> succeeds
+        const validAllocRes = await request(app)
+          .post('/api/tactical/projects/2/members')
+          .set('Cookie', tacticalCookie)
+          .send({
+            emp_id: 4,
+            role: 'Telemetry Field Operator',
+            allocation_percentage: 30,
+          });
+
+        expect(validAllocRes.status).toBe(201);
+      });
+
+      // M5: Tactical Project & Components CRUD
+      it('Tactical Manager can perform CRUD on tasks, phases and risks', async () => {
+        // 1. Create task
+        const taskRes = await request(app)
+          .post('/api/tactical/projects/1/tasks')
+          .set('Cookie', tacticalCookie)
+          .send({
+            name: 'Temp Project Task',
+            description: 'Testing task lifecycle',
+            status: 'Planned',
+            start_date: '2026-11-01',
+          });
+        expect(taskRes.status).toBe(201);
+        const taskId = taskRes.body.task_id;
+
+        // Update task
+        await request(app)
+          .put(`/api/tactical/tasks/${taskId}`)
+          .set('Cookie', tacticalCookie)
+          .send({
+            name: 'Updated Temp Task',
+            status: 'Active',
+            start_date: '2026-11-01',
+          });
+
+        // Delete task
+        const delTask = await request(app)
+          .delete(`/api/tactical/tasks/${taskId}`)
+          .set('Cookie', tacticalCookie);
+        expect(delTask.status).toBe(200);
+
+        // 2. Create Risk
+        const riskRes = await request(app)
+          .post('/api/tactical/projects/1/risks')
+          .set('Cookie', tacticalCookie)
+          .send({
+            title: 'Supply Chain Delay',
+            description: 'Material arrival latency',
+            level: 'Medium',
+          });
+        expect(riskRes.status).toBe(201);
+        const riskId = riskRes.body.risk_id;
+
+        // Delete Risk
+        const delRisk = await request(app)
+          .delete(`/api/tactical/risks/${riskId}`)
+          .set('Cookie', tacticalCookie);
+        expect(delRisk.status).toBe(200);
       });
 
       // Decisional paradigm: Tactical Manager cannot create Strategic decisions

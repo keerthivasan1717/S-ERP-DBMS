@@ -133,10 +133,31 @@ export class TacticalRepo {
 
   // Employee-Project Members
   async addMember(projectId: number, data: { emp_id: number; role: string; allocation_percentage?: number }) {
-    await this.db.execute(
-      'INSERT INTO employee_project (project_id, emp_id, role, allocation_percentage) VALUES (?, ?, ?, ?)',
-      [projectId, data.emp_id, data.role, data.allocation_percentage ?? 100.0]
+    const alloc = data.allocation_percentage ?? 100.0;
+    const existing = await this.db.query<any>(
+      'SELECT SUM(allocation_percentage) AS total_alloc FROM employee_project WHERE emp_id = ? AND project_id != ?',
+      [data.emp_id, projectId]
     );
+    const currentAlloc = Number(existing[0]?.total_alloc || 0);
+    if (currentAlloc + alloc > 100.0) {
+      throw new Error(`Total allocation for employee cannot exceed 100% (current: ${currentAlloc}%, attempted +${alloc}%).`);
+    }
+
+    const already = await this.db.one<any>(
+      'SELECT * FROM employee_project WHERE project_id = ? AND emp_id = ?',
+      [projectId, data.emp_id]
+    );
+    if (already) {
+      await this.db.execute(
+        'UPDATE employee_project SET role = ?, allocation_percentage = ? WHERE project_id = ? AND emp_id = ?',
+        [data.role, alloc, projectId, data.emp_id]
+      );
+    } else {
+      await this.db.execute(
+        'INSERT INTO employee_project (project_id, emp_id, role, allocation_percentage) VALUES (?, ?, ?, ?)',
+        [projectId, data.emp_id, data.role, alloc]
+      );
+    }
   }
 
   async removeMember(projectId: number, empId: number) {
