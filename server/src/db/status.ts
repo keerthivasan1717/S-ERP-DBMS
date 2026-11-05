@@ -1,9 +1,9 @@
 import mysql from 'mysql2/promise';
-import { Client as PgClient } from 'pg';
+import { MongoClient } from 'mongodb';
 import { env } from '../config/env.js';
 
 export interface EngineStatus {
-  engine: 'mysql' | 'postgres';
+  engine: 'mysql' | 'mongodb';
   name: string;
   host: string;
   port: number;
@@ -16,7 +16,7 @@ export interface EngineStatus {
 export interface DualEngineStatus {
   timestamp: string;
   mysql: EngineStatus;
-  postgres: EngineStatus;
+  mongodb: EngineStatus;
 }
 
 export async function checkMysqlStatus(): Promise<EngineStatus> {
@@ -56,39 +56,33 @@ export async function checkMysqlStatus(): Promise<EngineStatus> {
   return result;
 }
 
-export async function checkPostgresStatus(): Promise<EngineStatus> {
+export async function checkMongoStatus(): Promise<EngineStatus> {
   const result: EngineStatus = {
-    engine: 'postgres',
-    name: 'PostgreSQL 16',
-    host: env.PGHOST,
-    port: env.PGPORT,
-    database: env.PGDATABASE,
+    engine: 'mongodb',
+    name: 'NoSQL (MongoDB 6.0)',
+    host: env.MONGO_HOST,
+    port: env.MONGO_PORT,
+    database: env.MONGO_DATABASE,
     reachable: false,
     version: null,
   };
 
-  const client = new PgClient({
-    host: env.PGHOST,
-    port: env.PGPORT,
-    user: env.PGUSER,
-    password: env.PGPASSWORD,
-    database: env.PGDATABASE,
-    connectionTimeoutMillis: 3000,
-  });
+  const uri = `mongodb://${env.MONGO_USER}:${env.MONGO_PASSWORD}@${env.MONGO_HOST}:${env.MONGO_PORT}/${env.MONGO_DATABASE}?authSource=admin`;
+  const client = new MongoClient(uri, { serverSelectionTimeoutMS: 3000 });
 
   try {
     await client.connect();
-    const res = await client.query('SELECT version()');
+    const buildInfo = await client.db(env.MONGO_DATABASE).command({ buildInfo: 1 });
     result.reachable = true;
-    result.version = res.rows[0]?.version ? String(res.rows[0].version) : 'Unknown PostgreSQL version';
+    result.version = `MongoDB v${buildInfo.version || '6.0'}`;
   } catch (err: unknown) {
     result.reachable = false;
     result.error = err instanceof Error ? err.message : String(err);
   } finally {
     try {
-      await client.end();
+      await client.close();
     } catch {
-      // client may already be closed if connect failed
+      // client close
     }
   }
 
@@ -96,14 +90,14 @@ export async function checkPostgresStatus(): Promise<EngineStatus> {
 }
 
 export async function getEnginesStatus(): Promise<DualEngineStatus> {
-  const [mysqlStatus, postgresStatus] = await Promise.all([
+  const [mysqlStatus, mongoStatus] = await Promise.all([
     checkMysqlStatus(),
-    checkPostgresStatus(),
+    checkMongoStatus(),
   ]);
 
   return {
     timestamp: new Date().toISOString(),
     mysql: mysqlStatus,
-    postgres: postgresStatus,
+    mongodb: mongoStatus,
   };
 }

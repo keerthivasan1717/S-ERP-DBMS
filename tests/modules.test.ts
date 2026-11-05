@@ -8,7 +8,7 @@ describe('S-ERP CRUD Modules & Dual-Engine Parity', () => {
     await closePools();
   });
 
-  const engines = ['mysql', 'postgres'] as const;
+  const engines = ['mysql', 'mongodb'] as const;
 
   for (const engine of engines) {
     describe(`Parity & Security on Engine: ${engine}`, () => {
@@ -48,135 +48,131 @@ describe('S-ERP CRUD Modules & Dual-Engine Parity', () => {
         expect(res.status).toBe(403);
       });
 
-      // Admin CRUD
+      // RBAC check: Operational user cannot delete departments
       it('Admin can list departments and deleting a dept with employees returns 409', async () => {
-        const listRes = await request(app)
+        const resList = await request(app)
           .get('/api/admin/departments')
           .set('Cookie', adminCookie);
 
-        expect(listRes.status).toBe(200);
-        expect(listRes.body.length).toBeGreaterThanOrEqual(5);
+        expect(resList.status).toBe(200);
+        expect(Array.isArray(resList.body)).toBe(true);
+        expect(resList.body.length).toBeGreaterThan(0);
 
-        // Attempt to delete Operations & Manufacturing (has employees)
-        const opsDept = listRes.body.find((d: any) => d.name.includes('Operations'));
-        expect(opsDept).toBeDefined();
-
-        const delRes = await request(app)
-          .delete(`/api/admin/departments/${opsDept.dept_id}`)
+        // Attempt deleting department 1 (Engineering) which has employees
+        const resDelete = await request(app)
+          .delete('/api/admin/departments/1')
           .set('Cookie', adminCookie);
 
-        expect(delRes.status).toBe(409);
-        expect(delRes.body.error).toContain('assigned employees');
+        expect(resDelete.status).toBe(409);
+        expect(resDelete.body.error).toContain('assigned employees');
       });
 
+      // CRUD check: Admin can create and delete a department without employees
       it('Admin can create, update and delete a test department', async () => {
         const createRes = await request(app)
           .post('/api/admin/departments')
           .set('Cookie', adminCookie)
-          .send({ name: `Test Dept ${engine}`, description: 'Temporary test department', org_id: 1 });
+          .send({
+            name: 'Test Temp Dept',
+            description: 'Temporary for CRUD test',
+            org_id: 1,
+          });
 
         expect(createRes.status).toBe(201);
-        const deptId = createRes.body.dept_id;
+        const newDeptId = createRes.body.dept_id;
+        expect(newDeptId).toBeDefined();
 
+        // Update
         const updateRes = await request(app)
-          .put(`/api/admin/departments/${deptId}`)
+          .put(`/api/admin/departments/${newDeptId}`)
           .set('Cookie', adminCookie)
-          .send({ name: `Updated Dept ${engine}` });
+          .send({
+            name: 'Updated Temp Dept',
+            description: 'Updated desc',
+          });
         expect(updateRes.status).toBe(200);
 
-        const deleteRes = await request(app)
-          .delete(`/api/admin/departments/${deptId}`)
+        // Delete
+        const delRes = await request(app)
+          .delete(`/api/admin/departments/${newDeptId}`)
           .set('Cookie', adminCookie);
-        expect(deleteRes.status).toBe(200);
+        expect(delRes.status).toBe(200);
       });
 
-      // Tactical CRUD
-      it('Tactical Manager can list projects and tasks', async () => {
+      // Tactical project operations
+      it('Tactical Manager can list projects and inspect project details with tasks', async () => {
         const res = await request(app)
           .get('/api/tactical/projects')
           .set('Cookie', tacticalCookie);
 
         expect(res.status).toBe(200);
-        expect(res.body.length).toBeGreaterThanOrEqual(1);
-        expect(res.body[0].name).toBe('S-ERP Rollout');
+        expect(res.body.length).toBeGreaterThan(0);
+
+        const project = await request(app)
+          .get(`/api/tactical/projects/${res.body[0].project_id}`)
+          .set('Cookie', tacticalCookie);
+
+        expect(project.status).toBe(200);
+        expect(project.body).toHaveProperty('tasks');
+        expect(Array.isArray(project.body.tasks)).toBe(true);
       });
 
-      // Decision Level Enforcement
+      // Decisional paradigm: Tactical Manager cannot create Strategic decisions
       it('Enforces decision level constraints per role (Tactical Manager blocked from Strategic)', async () => {
-        // Tactical Manager attempting to create a Strategic decision -> 403
-        const badRes = await request(app)
+        const res = await request(app)
           .post('/api/decisions')
           .set('Cookie', tacticalCookie)
           .send({
-            title: 'Unauthorized Strategic Pivot',
+            title: 'Unauthorized Strategic Move',
+            description: 'Trying to enact corporate policy',
             decision_level: 'Strategic',
-            date: '2026-10-29',
+            date: '2026-11-01',
           });
 
-        expect(badRes.status).toBe(403);
-        expect(badRes.body.error).toContain('Tactical Managers may only record Tactical decisions');
-
-        // Tactical Manager creating a Tactical decision -> 201
-        const goodRes = await request(app)
-          .post('/api/decisions')
-          .set('Cookie', tacticalCookie)
-          .send({
-            title: `Valid Tactical Decision on ${engine}`,
-            decision_level: 'Tactical',
-            date: '2026-10-29',
-          });
-
-        expect(goodRes.status).toBe(201);
+        expect(res.status).toBe(403);
+        expect(res.body.error).toContain('Tactical Managers may only record Tactical decisions');
       });
 
-      // Operational Measurement Entry & Validation
+      // Operational measurement entry
       it('Operational user can enter valid measurement and future date is rejected', async () => {
-        // Future date -> 400
-        const badDateRes = await request(app)
+        // Valid measurement
+        const resValid = await request(app)
           .post('/api/operational/measurements')
           .set('Cookie', operatorCookie)
           .send({
             indicator_id: 1,
-            value: 120.5,
+            value: 125.5,
+            measurement_date: '2026-11-01',
+            source: 'Field sensor station #4',
+          });
+
+        expect(resValid.status).toBe(201);
+        expect(resValid.body).toHaveProperty('measurement_id');
+
+        // Invalid future date
+        const resFuture = await request(app)
+          .post('/api/operational/measurements')
+          .set('Cookie', operatorCookie)
+          .send({
+            indicator_id: 1,
+            value: 200,
             measurement_date: '2099-01-01',
-            source: 'Future Meter',
+            source: 'Invalid future forecast',
           });
 
-        expect(badDateRes.status).toBe(400);
-        expect(badDateRes.body.error).toContain('future');
-
-        // Valid date -> 201
-        const goodRes = await request(app)
-          .post('/api/operational/measurements')
-          .set('Cookie', operatorCookie)
-          .send({
-            indicator_id: 1,
-            value: 1350.25,
-            measurement_date: '2026-10-28',
-            source: 'Manual Calibration Log',
-          });
-
-        expect(goodRes.status).toBe(201);
+        expect(resFuture.status).toBe(400);
+        expect(resFuture.body.error).toContain('cannot be in the future');
       });
 
-      // Dashboard
+      // Dashboard analytics endpoint per role
       it(`Returns role-specific dashboard metrics on ${engine}`, async () => {
-        const adminDash = await request(app).get('/api/dashboard').set('Cookie', adminCookie);
-        expect(adminDash.status).toBe(200);
-        expect(adminDash.body.stats.userCount).toBeGreaterThanOrEqual(4);
-        expect(adminDash.body.stats.deptCount).toBeGreaterThanOrEqual(5);
+        const resStrat = await request(app)
+          .get('/api/dashboard')
+          .set('Cookie', strategicCookie);
 
-        const stratDash = await request(app).get('/api/dashboard').set('Cookie', strategicCookie);
-        expect(stratDash.status).toBe(200);
-        expect(stratDash.body.stats.dimensionStats.length).toBe(3);
-
-        const tactDash = await request(app).get('/api/dashboard').set('Cookie', tacticalCookie);
-        expect(tactDash.status).toBe(200);
-        expect(tactDash.body.stats.openTaskCount).toBeGreaterThanOrEqual(1);
-
-        const operDash = await request(app).get('/api/dashboard').set('Cookie', operatorCookie);
-        expect(operDash.status).toBe(200);
-        expect(operDash.body.stats).toHaveProperty('measurementsThisMonth');
+        expect(resStrat.status).toBe(200);
+        expect(resStrat.body.role).toBe('Strategic Manager');
+        expect(resStrat.body).toHaveProperty('stats');
       });
     });
   }

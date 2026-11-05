@@ -1,13 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import mysql from 'mysql2/promise';
-import pg from 'pg';
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-const { Pool: PgPool } = pg;
 
 export async function migrateMySQL(): Promise<void> {
   const schemaPath = path.resolve(process.cwd(), 'db/mysql/schema.sql');
@@ -62,28 +59,6 @@ export async function migrateMongo(): Promise<void> {
   }
 }
 
-export async function migratePostgres(): Promise<void> {
-  const schemaPath = path.resolve(process.cwd(), 'db/postgres/schema.sql');
-  if (!fs.existsSync(schemaPath)) return;
-  const sql = fs.readFileSync(schemaPath, 'utf8');
-
-  const pool = new PgPool({
-    host: process.env.PGHOST || '127.0.0.1',
-    port: Number(process.env.PGPORT) || 5434,
-    user: process.env.PGUSER || 'serp',
-    password: process.env.PGPASSWORD || 'serp_password',
-    database: process.env.PGDATABASE || 'serp',
-  });
-
-  try {
-    console.log('[PostgreSQL] Applying schema...');
-    await pool.query(sql);
-    console.log('[PostgreSQL] Schema applied successfully.');
-  } finally {
-    await pool.end();
-  }
-}
-
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const engineArg = args.find((a) => a.startsWith('--engine='));
@@ -91,13 +66,11 @@ async function main(): Promise<void> {
 
   if (engine === 'mysql') {
     await migrateMySQL();
-  } else if (engine === 'postgres') {
-    await migratePostgres();
   } else if (engine === 'mongodb') {
     await migrateMongo();
   } else {
     await migrateMySQL();
-    await migratePostgres();
+    await migrateMongo();
   }
 }
 
