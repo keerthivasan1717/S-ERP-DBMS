@@ -99,6 +99,108 @@ describe('S-ERP CRUD Modules & Dual-Engine Parity', () => {
         expect(delRes.status).toBe(200);
       });
 
+      // M4: Employee CRUD
+      it('Admin can perform full CRUD on employees', async () => {
+        const testEmail = `test.employee.${Date.now()}@oscorp.com`;
+        const createRes = await request(app)
+          .post('/api/admin/employees')
+          .set('Cookie', adminCookie)
+          .send({
+            name: 'Jane Doe',
+            email: testEmail,
+            role: 'Junior Analyst',
+            department_id: 1,
+          });
+
+        expect(createRes.status).toBe(201);
+        const empId = createRes.body.emp_id;
+        expect(empId).toBeDefined();
+
+        // Update
+        const updateRes = await request(app)
+          .put(`/api/admin/employees/${empId}`)
+          .set('Cookie', adminCookie)
+          .send({
+            name: 'Jane Smith',
+            email: testEmail,
+            role: 'Senior Analyst',
+            department_id: 1,
+          });
+        expect(updateRes.status).toBe(200);
+
+        // Delete
+        const delRes = await request(app)
+          .delete(`/api/admin/employees/${empId}`)
+          .set('Cookie', adminCookie);
+        expect(delRes.status).toBe(200);
+      });
+
+      // M4: User Account Lifecycle (Link to Employee, Reset Password, Activate/Deactivate)
+      it('Admin can manage user account lifecycle and employee links', async () => {
+        const testUser = `temp_user_${Date.now()}`;
+        const createRes = await request(app)
+          .post('/api/admin/users')
+          .set('Cookie', adminCookie)
+          .send({
+            username: testUser,
+            password: 'InitialPassword123',
+            app_role: 'Operational User',
+            emp_id: 1,
+            is_active: true,
+          });
+
+        expect(createRes.status).toBe(201);
+        const userId = createRes.body.user_id;
+        expect(userId).toBeDefined();
+
+        // Deactivate and reset password
+        const updateRes = await request(app)
+          .put(`/api/admin/users/${userId}`)
+          .set('Cookie', adminCookie)
+          .send({
+            password: 'NewResetPassword456',
+            is_active: false,
+          });
+        expect(updateRes.status).toBe(200);
+
+        // Attempt login with deactivated user -> expect 403
+        const deactLogin = await request(app)
+          .post('/api/auth/login')
+          .send({ engine, username: testUser, password: 'NewResetPassword456' });
+        expect(deactLogin.status).toBe(403);
+        expect(deactLogin.body.error).toContain('deactivated');
+
+        // Delete user
+        const delRes = await request(app)
+          .delete(`/api/admin/users/${userId}`)
+          .set('Cookie', adminCookie);
+        expect(delRes.status).toBe(200);
+      });
+
+      // M4: Organization Profile & Sustainability Dimensions (G1)
+      it('Admin can fetch and update Organization profile with dimension focus', async () => {
+        const orgRes = await request(app)
+          .get('/api/admin/organization')
+          .set('Cookie', adminCookie);
+
+        expect(orgRes.status).toBe(200);
+        expect(orgRes.body.name).toBe('Oscorp Industries');
+        expect(Array.isArray(orgRes.body.dimensions)).toBe(true);
+
+        const updateRes = await request(app)
+          .put('/api/admin/organization')
+          .set('Cookie', adminCookie)
+          .send({
+            name: 'Oscorp Industries',
+            description: 'Advanced sustainable materials and clean technology enterprise.',
+            address: '100 Innovation Boulevard, Tech District',
+            dimensionIds: [1, 2, 3],
+          });
+
+        expect(updateRes.status).toBe(200);
+        expect(updateRes.body.dimensions.length).toBe(3);
+      });
+
       // Tactical project operations
       it('Tactical Manager can list projects and inspect project details with tasks', async () => {
         const res = await request(app)
