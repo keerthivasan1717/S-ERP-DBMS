@@ -173,16 +173,23 @@ tacticalRouter.delete('/risks/:id', async (req: Request, res: Response) => {
 
 // Members
 tacticalRouter.post('/projects/:projectId/members', async (req: Request, res: Response) => {
-  const projectId = Number(req.params.projectId);
-  const schema = z.object({
-    emp_id: z.number(),
-    role: z.string().min(1),
-    allocation_percentage: z.number().min(0).max(100).optional(),
-  });
-  const data = schema.parse(req.body);
-  const repo = new TacticalRepo(req.db!);
-  await repo.addMember(projectId, data);
-  res.status(201).json({ message: 'Member added to project' });
+  try {
+    const projectId = Number(req.params.projectId);
+    const schema = z.object({
+      emp_id: z.number(),
+      role: z.string().min(1),
+      allocation_percentage: z.number().min(0).max(100).optional(),
+    });
+    const data = schema.parse(req.body);
+    const repo = new TacticalRepo(req.db!);
+    await repo.addMember(projectId, data);
+    res.status(201).json({ message: 'Member added to project' });
+  } catch (err: any) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: err.errors[0]?.message || 'Validation error' });
+    }
+    res.status(400).json({ error: err.message || 'Failed to add member' });
+  }
 });
 
 tacticalRouter.delete('/projects/:projectId/members/:empId', async (req: Request, res: Response) => {
