@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../server/src/app.js';
-import { closePools } from '../server/src/db/adapter.js';
+import { closePools, getAdapter } from '../server/src/db/adapter.js';
 
 describe('S-ERP CRUD Modules & Dual-Engine Parity', () => {
   afterAll(async () => {
@@ -349,6 +349,45 @@ describe('S-ERP CRUD Modules & Dual-Engine Parity', () => {
 
         expect(resFuture.status).toBe(400);
         expect(resFuture.body.error).toContain('cannot be in the future');
+
+        // M6: Reject duplicate measurement on same date (Gap G4)
+        const resDup = await request(app)
+          .post('/api/operational/measurements')
+          .set('Cookie', operatorCookie)
+          .send({
+            indicator_id: 1,
+            value: 130.0,
+            measurement_date: '2026-11-01',
+            source: 'Duplicate meter reading',
+          });
+        expect(resDup.status).toBe(400);
+        expect(resDup.body.error).toContain('already exists');
+
+        // M6: Operational user cannot create indicators (returns 403)
+        const unauthInd = await request(app)
+          .post('/api/sustainability/indicators')
+          .set('Cookie', operatorCookie)
+          .send({
+            name: 'Unauthorized Metric',
+            unit: 'kg',
+            dimension_id: 1,
+          });
+        expect(unauthInd.status).toBe(403);
+
+        // M6: Strategic Manager can inspect indicator detail and measurement history
+        const indDetail = await request(app)
+          .get('/api/sustainability/indicators/1')
+          .set('Cookie', strategicCookie);
+        expect(indDetail.status).toBe(200);
+        expect(indDetail.body).toHaveProperty('measurements');
+        expect(Array.isArray(indDetail.body.measurements)).toBe(true);
+        expect(indDetail.body.measurements.length).toBeGreaterThan(0);
+
+        // Cleanup test measurement
+        if (resValid.body?.measurement_id) {
+          const db = getAdapter(engine);
+          await db.execute('DELETE FROM indicator_measurement WHERE measurement_id = ?', [resValid.body.measurement_id]);
+        }
       });
 
       // Dashboard analytics endpoint per role

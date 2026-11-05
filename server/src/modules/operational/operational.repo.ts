@@ -25,6 +25,14 @@ export class OperationalRepo {
     source: string;
     recorded_by: number;
   }) {
+    const existing = await this.db.one<any>(
+      'SELECT measurement_id FROM indicator_measurement WHERE indicator_id = ? AND measurement_date = ?',
+      [data.indicator_id, data.measurement_date]
+    );
+    if (existing) {
+      throw new Error(`A measurement for indicator #${data.indicator_id} on date ${data.measurement_date} already exists (G4).`);
+    }
+
     return this.db.insert(
       'INSERT INTO indicator_measurement (indicator_id, value, measurement_date, source, recorded_by) VALUES (?, ?, ?, ?, ?)',
       [data.indicator_id, data.value, data.measurement_date, data.source, data.recorded_by],

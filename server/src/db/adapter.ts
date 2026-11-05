@@ -174,9 +174,15 @@ export class MongoAdapter implements DbAdapter {
     }
 
     const cleanSql = sql.replace(/\bAS\s+count\b/gi, 'AS `count`');
+    const processedParams = params.map((p) => {
+      if (typeof p === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p) && /measurement_date/i.test(sql)) {
+        return new Date(p).getTime();
+      }
+      return p;
+    });
 
     try {
-      const rows = adb.exec(cleanSql, params) || [];
+      const rows = adb.exec(cleanSql, processedParams) || [];
       const result = rows.map((r: any) => {
         if (r && typeof r === 'object') {
           for (const k of Object.keys(r)) {

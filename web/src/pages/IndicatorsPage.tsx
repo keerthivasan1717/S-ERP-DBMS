@@ -115,6 +115,57 @@ export const IndicatorsPage: React.FC<IndicatorsPageProps> = ({ userRole }) => {
             {selectedIndicator.description || 'No description provided.'}
           </p>
 
+          {/* SVG Sparkline Trend */}
+          {selectedIndicator.measurements && selectedIndicator.measurements.length > 1 && (
+            <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 'var(--radius)' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-soft)', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
+                Historical Trend Sparkline ({selectedIndicator.unit})
+              </div>
+              {(() => {
+                const points = [...selectedIndicator.measurements].reverse();
+                const values = points.map((p: any) => Number(p.value));
+                const min = Math.min(...values);
+                const max = Math.max(...values);
+                const range = max - min === 0 ? 1 : max - min;
+                const width = 500;
+                const height = 80;
+                const padding = 15;
+                const step = (width - padding * 2) / (values.length - 1);
+
+                const coords = values.map((v, i) => {
+                  const x = padding + i * step;
+                  const y = height - padding - ((v - min) / range) * (height - padding * 2);
+                  return `${x},${y}`;
+                }).join(' ');
+
+                return (
+                  <div>
+                    <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'visible' }}>
+                      <polyline
+                        fill="none"
+                        stroke="var(--accent)"
+                        strokeWidth="2"
+                        points={coords}
+                      />
+                      {values.map((v, i) => {
+                        const x = padding + i * step;
+                        const y = height - padding - ((v - min) / range) * (height - padding * 2);
+                        return (
+                          <g key={i}>
+                            <circle cx={x} cy={y} r="3" fill="var(--surface)" stroke="var(--accent)" strokeWidth="2" />
+                            <text x={x} y={y - 8} fontSize="9" textAnchor="middle" fill="var(--ink-soft)" fontFamily="var(--font-mono)">
+                              {v}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
           <h3 style={{ fontSize: '1rem', marginBottom: '0.6rem' }}>Measurement History Ledger</h3>
           {selectedIndicator.measurements?.length === 0 ? (
             <div className="empty-state">No measurements logged for this indicator yet.</div>

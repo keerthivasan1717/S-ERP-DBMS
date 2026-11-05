@@ -46,16 +46,20 @@ operationalRouter.post('/measurements', requireRole('Operational User', 'Adminis
   }
 
   const repo = new OperationalRepo(req.db!);
-  const measurementId = await repo.enterMeasurement({
-    indicator_id: data.indicator_id,
-    value: data.value,
-    measurement_date: data.measurement_date,
-    source: data.source,
-    recorded_by: req.user!.userId,
-  });
+  try {
+    const measurementId = await repo.enterMeasurement({
+      indicator_id: data.indicator_id,
+      value: data.value,
+      measurement_date: data.measurement_date,
+      source: data.source,
+      recorded_by: req.user!.userId,
+    });
 
-  res.status(201).json({
-    measurement_id: measurementId,
-    message: 'Measurement entered successfully',
-  });
+    res.status(201).json({
+      measurement_id: measurementId,
+      message: 'Measurement entered successfully',
+    });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || 'Failed to record measurement' });
+  }
 });
