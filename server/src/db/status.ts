@@ -1,10 +1,9 @@
 import mysql from 'mysql2/promise';
 import { Client as PgClient } from 'pg';
-import { MongoClient } from 'mongodb';
 import { env } from '../config/env.js';
 
 export interface EngineStatus {
-  engine: 'mysql' | 'postgres' | 'mongodb';
+  engine: 'mysql' | 'postgres';
   name: string;
   host: string;
   port: number;
@@ -17,8 +16,7 @@ export interface EngineStatus {
 export interface DualEngineStatus {
   timestamp: string;
   mysql: EngineStatus;
-  mongodb: EngineStatus;
-  postgres?: EngineStatus;
+  postgres: EngineStatus;
 }
 
 export async function checkMysqlStatus(): Promise<EngineStatus> {
@@ -53,39 +51,6 @@ export async function checkMysqlStatus(): Promise<EngineStatus> {
   } catch (err: unknown) {
     result.reachable = false;
     result.error = err instanceof Error ? err.message : String(err);
-  }
-
-  return result;
-}
-
-export async function checkMongoStatus(): Promise<EngineStatus> {
-  const result: EngineStatus = {
-    engine: 'mongodb',
-    name: 'NoSQL (MongoDB 6.0)',
-    host: env.MONGO_HOST,
-    port: env.MONGO_PORT,
-    database: env.MONGO_DATABASE,
-    reachable: false,
-    version: null,
-  };
-
-  const uri = `mongodb://${env.MONGO_USER}:${env.MONGO_PASSWORD}@${env.MONGO_HOST}:${env.MONGO_PORT}/${env.MONGO_DATABASE}?authSource=admin`;
-  const client = new MongoClient(uri, { serverSelectionTimeoutMS: 3000 });
-
-  try {
-    await client.connect();
-    const buildInfo = await client.db(env.MONGO_DATABASE).command({ buildInfo: 1 });
-    result.reachable = true;
-    result.version = `MongoDB v${buildInfo.version || '6.0'}`;
-  } catch (err: unknown) {
-    result.reachable = false;
-    result.error = err instanceof Error ? err.message : String(err);
-  } finally {
-    try {
-      await client.close();
-    } catch {
-      // client close
-    }
   }
 
   return result;
@@ -131,16 +96,14 @@ export async function checkPostgresStatus(): Promise<EngineStatus> {
 }
 
 export async function getEnginesStatus(): Promise<DualEngineStatus> {
-  const [mysqlStatus, mongoStatus, postgresStatus] = await Promise.all([
+  const [mysqlStatus, postgresStatus] = await Promise.all([
     checkMysqlStatus(),
-    checkMongoStatus(),
     checkPostgresStatus(),
   ]);
 
   return {
     timestamp: new Date().toISOString(),
     mysql: mysqlStatus,
-    mongodb: mongoStatus,
     postgres: postgresStatus,
   };
 }

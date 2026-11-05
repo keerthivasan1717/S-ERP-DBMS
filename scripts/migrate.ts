@@ -91,13 +91,13 @@ async function main(): Promise<void> {
 
   if (engine === 'mysql') {
     await migrateMySQL();
-  } else if (engine === 'mongodb') {
-    await migrateMongo();
   } else if (engine === 'postgres') {
     await migratePostgres();
+  } else if (engine === 'mongodb') {
+    await migrateMongo();
   } else {
     await migrateMySQL();
-    await migrateMongo();
+    await migratePostgres();
   }
 }
 

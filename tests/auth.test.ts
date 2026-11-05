@@ -8,7 +8,7 @@ describe('Auth & Session API', () => {
     await closePools();
   });
 
-  const engines = ['mysql', 'mongodb'] as const;
+  const engines = ['mysql', 'postgres'] as const;
 
   for (const engine of engines) {
     describe(`Engine: ${engine}`, () => {
