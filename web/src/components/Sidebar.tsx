@@ -6,6 +6,7 @@ export type NavItemKey =
   | 'departments'
   | 'employees'
   | 'organization'
+  | 'admin-levels'
   | 'projects'
   | 'processes'
   | 'resources'
@@ -82,6 +83,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, activeItem, onSelect }) 
           </div>
           <div style={linkStyle('organization')} onClick={() => onSelect('organization')}>
             Organization Profile
+          </div>
+          <div style={linkStyle('admin-levels')} onClick={() => onSelect('admin-levels')}>
+            Administration Levels
           </div>
         </>
       )}

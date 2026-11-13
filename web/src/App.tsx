@@ -8,6 +8,7 @@ import { UsersPage } from './pages/UsersPage.js';
 import { DepartmentsPage } from './pages/DepartmentsPage.js';
 import { EmployeesPage } from './pages/EmployeesPage.js';
 import { OrganizationPage } from './pages/OrganizationPage.js';
+import { AdminLevelsPage } from './pages/AdminLevelsPage.js';
 import { ProjectsPage } from './pages/ProjectsPage.js';
 import { ProcessesPage } from './pages/ProcessesPage.js';
 import { ResourcesPage } from './pages/ResourcesPage.js';
@@ -79,6 +80,8 @@ export const App: React.FC = () => {
         return <EmployeesPage />;
       case 'organization':
         return <OrganizationPage />;
+      case 'admin-levels':
+        return <AdminLevelsPage />;
       case 'projects':
         return <ProjectsPage />;
       case 'processes':

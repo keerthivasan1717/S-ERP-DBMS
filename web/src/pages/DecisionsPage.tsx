@@ -10,6 +10,7 @@ interface DecisionsPageProps {
 
 export const DecisionsPage: React.FC<DecisionsPageProps> = ({ userRole }) => {
   const [decisions, setDecisions] = useState<any[]>([]);
+  const [availableLevels, setAvailableLevels] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [processes, setProcesses] = useState<any[]>([]);
   const [risks, setRisks] = useState<any[]>([]);
@@ -17,6 +18,10 @@ export const DecisionsPage: React.FC<DecisionsPageProps> = ({ userRole }) => {
 
   const [levelFilter, setLevelFilter] = useState<string>('All');
   const [showModal, setShowModal] = useState(false);
+  const [showLevelModal, setShowLevelModal] = useState(false);
+  const [newLevelName, setNewLevelName] = useState('');
+  const [newLevelDesc, setNewLevelDesc] = useState('');
+  const [levelError, setLevelError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const defaultLevel =
@@ -34,8 +39,14 @@ export const DecisionsPage: React.FC<DecisionsPageProps> = ({ userRole }) => {
   const loadData = async () => {
     try {
       const url = levelFilter === 'All' ? '/api/decisions' : `/api/decisions?level=${levelFilter}`;
-      const dList = await api.get(url);
+      const [dList, lvlList] = await Promise.all([
+        api.get(url),
+        api.get('/api/decisions/levels').catch(() => []),
+      ]);
       setDecisions(dList);
+      if (lvlList?.length) {
+        setAvailableLevels(lvlList);
+      }
 
       // Try loading projects, processes, risks if tactical or admin
       if (userRole === 'Administrator' || userRole === 'Tactical Manager' || userRole === 'Strategic Manager') {
@@ -76,6 +87,25 @@ export const DecisionsPage: React.FC<DecisionsPageProps> = ({ userRole }) => {
     setSelectedRiskIds([]);
     setError(null);
     setShowModal(true);
+  };
+
+  const handleCreateLevel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLevelError(null);
+    try {
+      await api.post('/api/decisions/levels', {
+        name: newLevelName,
+        description: newLevelDesc || undefined,
+      });
+      setShowLevelModal(false);
+      const createdName = newLevelName;
+      setNewLevelName('');
+      setNewLevelDesc('');
+      await loadData();
+      setDecisionLevel(createdName);
+    } catch (err: any) {
+      setLevelError(err.message);
+    }
   };
 
   const handleToggleRisk = (rId: number) => {
@@ -172,11 +202,19 @@ export const DecisionsPage: React.FC<DecisionsPageProps> = ({ userRole }) => {
               style={{ width: 'auto', padding: '0.35rem 0.6rem' }}
             >
               <option value="All">All Levels</option>
-              <option value="Strategic">Strategic</option>
-              <option value="Tactical">Tactical</option>
-              <option value="Operational">Operational</option>
+              {availableLevels.map((lvl) => (
+                <option key={lvl.level_id} value={lvl.name}>
+                  {lvl.name}
+                </option>
+              ))}
             </select>
           </div>
+
+          {userRole === 'Administrator' && (
+            <button className="btn" onClick={() => setShowLevelModal(true)}>
+              + New Admin Level
+            </button>
+          )}
 
           <button className="btn btn-primary" onClick={openCreateModal}>
             + Log Decision
@@ -207,11 +245,19 @@ export const DecisionsPage: React.FC<DecisionsPageProps> = ({ userRole }) => {
                     disabled={userRole !== 'Administrator'}
                   >
                     {userRole === 'Administrator' ? (
-                      <>
-                        <option value="Strategic">Strategic</option>
-                        <option value="Tactical">Tactical</option>
-                        <option value="Operational">Operational</option>
-                      </>
+                      availableLevels.length > 0 ? (
+                        availableLevels.map((lvl) => (
+                          <option key={lvl.level_id} value={lvl.name}>
+                            {lvl.name}
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="Strategic">Strategic</option>
+                          <option value="Tactical">Tactical</option>
+                          <option value="Operational">Operational</option>
+                        </>
+                      )
                     ) : userRole === 'Strategic Manager' ? (
                       <option value="Strategic">Strategic (Enforced for Role)</option>
                     ) : userRole === 'Tactical Manager' ? (
@@ -274,6 +320,41 @@ export const DecisionsPage: React.FC<DecisionsPageProps> = ({ userRole }) => {
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
                 <button type="button" className="btn" onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Save Decision</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Administration Level Modal */}
+      {showLevelModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(30,36,33,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '1.5rem', maxWidth: '440px', width: '90%' }}>
+            <h3>Create New Level of Administration</h3>
+            {levelError && <div style={{ color: 'var(--danger)', marginBottom: '1rem', fontSize: '0.85rem' }}>{levelError}</div>}
+            <form onSubmit={handleCreateLevel} style={{ marginTop: '1rem' }}>
+              <div className="form-group">
+                <label>Administration Level Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Normative, Executive"
+                  value={newLevelName}
+                  onChange={(e) => setNewLevelName(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Scope & Justification</label>
+                <textarea
+                  rows={3}
+                  placeholder="Describe the governance or administrative purpose..."
+                  value={newLevelDesc}
+                  onChange={(e) => setNewLevelDesc(e.target.value)}
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
+                <button type="button" className="btn" onClick={() => setShowLevelModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Create Level</button>
               </div>
             </form>
           </div>

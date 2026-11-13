@@ -152,6 +152,21 @@ button.btn-sm, .btn.btn-sm {
   color: var(--ochre);
 }
 
+.status-tag.strategic {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.status-tag.tactical {
+  border-color: var(--moss);
+  color: var(--moss);
+}
+
+.status-tag.operational {
+  border-color: var(--slate);
+  color: var(--slate);
+}
+
 /* Tables (Ledger-style) */
 .table-container {
   width: 100%;

@@ -33,7 +33,7 @@ export async function seedMySQL(options: SeedOptions = {}): Promise<void> {
       const tables = [
         'phase_report', 'decision_risk', 'process_indicator', 'organization_dimension',
         'process_resource', 'employee_project', 'indicator_measurement', 'report',
-        'implementation_phase', 'risk', 'decision', 'business_process', 'resource',
+        'implementation_phase', 'risk', 'decision', 'decision_level', 'business_process', 'resource',
         'app_user', 'sustainability_indicator', 'sustainability_dimension',
         'project_task', 'project', 'employee', 'department', 'organization'
       ];
@@ -75,7 +75,7 @@ export async function seedMongo(options: SeedOptions = {}): Promise<void> {
     const tables = [
       'phase_report', 'decision_risk', 'process_indicator', 'organization_dimension',
       'process_resource', 'employee_project', 'indicator_measurement', 'report',
-      'implementation_phase', 'risk', 'decision', 'business_process', 'resource',
+      'implementation_phase', 'risk', 'decision', 'decision_level', 'business_process', 'resource',
       'app_user', 'sustainability_indicator', 'sustainability_dimension',
       'project_task', 'project', 'employee', 'department', 'organization'
     ];
@@ -426,6 +426,17 @@ async function seedData(exec: (sql: string, params: any[]) => Promise<any>): Pro
   ]);
   const risk3 = await exec('INSERT INTO risk (title, description, level, project_id) VALUES (?, ?, ?, ?)', [
     'Operator Training Lag', 'Slower initial entry rate during the first two weeks of manual logging', 'Low', projId
+  ]);
+
+  // 14b. Decision Levels (Strategic, Tactical, Operational)
+  await exec('INSERT INTO decision_level (name, description) VALUES (?, ?)', [
+    'Strategic', 'Long-term enterprise policy, corporate vision, and sustainability governance.'
+  ]);
+  await exec('INSERT INTO decision_level (name, description) VALUES (?, ?)', [
+    'Tactical', 'Medium-term operational coordination, project execution, and resource allocation.'
+  ]);
+  await exec('INSERT INTO decision_level (name, description) VALUES (?, ?)', [
+    'Operational', 'Short-term daily operations, routine activities, and measurement collection.'
   ]);
 
   // 15. Decisions (3 decisions: Strategic, Tactical, Operational)

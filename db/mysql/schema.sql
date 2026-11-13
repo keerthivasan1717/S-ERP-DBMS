@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS report;
 DROP TABLE IF EXISTS implementation_phase;
 DROP TABLE IF EXISTS risk;
 DROP TABLE IF EXISTS decision;
+DROP TABLE IF EXISTS decision_level;
 DROP TABLE IF EXISTS business_process;
 DROP TABLE IF EXISTS resource;
 DROP TABLE IF EXISTS app_user;
@@ -193,6 +194,14 @@ CREATE TABLE process_resource (
 
 CREATE INDEX idx_pr_res ON process_resource(resource_id);
 
+-- 13b. Decision Level (Administration Level)
+CREATE TABLE decision_level (
+  level_id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL UNIQUE,
+  description TEXT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- 14. Decision
 CREATE TABLE decision (
   decision_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -206,12 +215,13 @@ CREATE TABLE decision (
   CONSTRAINT fk_dec_emp FOREIGN KEY (created_by) REFERENCES employee(emp_id) ON DELETE RESTRICT,
   CONSTRAINT fk_dec_proj FOREIGN KEY (project_id) REFERENCES project(project_id) ON DELETE SET NULL,
   CONSTRAINT fk_dec_proc FOREIGN KEY (process_id) REFERENCES business_process(process_id) ON DELETE SET NULL,
-  CONSTRAINT chk_dec_level CHECK (decision_level IN ('Strategic', 'Tactical', 'Operational'))
+  CONSTRAINT fk_dec_level FOREIGN KEY (decision_level) REFERENCES decision_level(name) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE INDEX idx_dec_emp ON decision(created_by);
 CREATE INDEX idx_dec_proj ON decision(project_id);
 CREATE INDEX idx_dec_proc ON decision(process_id);
+CREATE INDEX idx_dec_level ON decision(decision_level);
 
 -- 15. Risk
 CREATE TABLE risk (

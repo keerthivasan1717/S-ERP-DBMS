@@ -110,7 +110,7 @@ class MySqlAdapter implements DbAdapter {
 const ALL_COLLECTIONS = [
   'phase_report', 'decision_risk', 'process_indicator', 'organization_dimension',
   'process_resource', 'employee_project', 'indicator_measurement', 'report',
-  'implementation_phase', 'risk', 'decision', 'business_process', 'resource',
+  'implementation_phase', 'risk', 'decision', 'decision_level', 'business_process', 'resource',
   'app_user', 'sustainability_indicator', 'sustainability_dimension',
   'project_task', 'project', 'employee', 'department', 'organization'
 ];
@@ -128,6 +128,7 @@ const PK_MAP: Record<string, string> = {
   resource: 'resource_id',
   business_process: 'process_id',
   decision: 'decision_id',
+  decision_level: 'level_id',
   risk: 'risk_id',
   implementation_phase: 'phase_id',
   report: 'report_id',

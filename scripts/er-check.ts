@@ -19,6 +19,7 @@ export const EXPECTED_TABLES = [
   'business_process',
   'process_resource',
   'decision',
+  'decision_level',
   'risk',
   'implementation_phase',
   'report',

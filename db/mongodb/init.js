@@ -13,6 +13,7 @@ const collections = [
   'implementation_phase',
   'risk',
   'decision',
+  'decision_level',
   'business_process',
   'resource',
   'app_user',
@@ -37,6 +38,7 @@ collections.forEach(col => {
 db.app_user.createIndex({ username: 1 }, { unique: true });
 db.employee.createIndex({ email: 1 }, { unique: true });
 db.sustainability_dimension.createIndex({ name: 1 }, { unique: true });
+db.decision_level.createIndex({ name: 1 }, { unique: true });
 
 // Relational Performance Indexes
 db.department.createIndex({ org_id: 1 });

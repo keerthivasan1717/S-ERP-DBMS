@@ -470,6 +470,74 @@ describe('S-ERP CRUD Modules & Dual-Engine Parity', () => {
         await db.execute('DELETE FROM decision WHERE decision_id = ?', [decId]);
       });
 
+      // Admin creation and governance of new administration levels (Decisional Paradigm)
+      it('Admin can create, govern, and log decisions under a new administration level', async () => {
+        const uniqueLevel = `Normative Governance ${Date.now()}`;
+
+        // 1. Non-admin is forbidden from creating new administration level (403)
+        const unauthCreate = await request(app)
+          .post('/api/decisions/levels')
+          .set('Cookie', tacticalCookie)
+          .send({ name: uniqueLevel, description: 'High-level regulatory compliance' });
+        expect(unauthCreate.status).toBe(403);
+
+        // 2. Admin successfully creates a new administration level (201)
+        const createRes = await request(app)
+          .post('/api/decisions/levels')
+          .set('Cookie', adminCookie)
+          .send({ name: uniqueLevel, description: 'Institutional regulatory compliance & standards' });
+        expect(createRes.status).toBe(201);
+        expect(createRes.body.level_id).toBeDefined();
+        const levelId = createRes.body.level_id;
+
+        // 3. Duplicate administration level name is rejected (400)
+        const dupRes = await request(app)
+          .post('/api/decisions/levels')
+          .set('Cookie', adminCookie)
+          .send({ name: uniqueLevel });
+        expect(dupRes.status).toBe(400);
+
+        // 4. Verify listed levels includes the new administration level
+        const listRes = await request(app)
+          .get('/api/decisions/levels')
+          .set('Cookie', adminCookie);
+        expect(listRes.status).toBe(200);
+        expect(listRes.body.some((l: any) => l.name === uniqueLevel)).toBe(true);
+
+        // 5. Admin can log a decision with the new administration level
+        const decRes = await request(app)
+          .post('/api/decisions')
+          .set('Cookie', adminCookie)
+          .send({
+            title: `Normative Policy Directive ${Date.now()}`,
+            description: 'Enforce EU CSRD audit protocols across all operations',
+            decision_level: uniqueLevel,
+            date: '2026-11-10',
+          });
+        expect(decRes.status).toBe(201);
+        const decId = decRes.body.decision_id;
+
+        // 6. Cannot delete built-in system administration levels
+        const delCore = await request(app)
+          .delete('/api/decisions/levels/1') // Strategic
+          .set('Cookie', adminCookie);
+        expect(delCore.status).toBe(400);
+
+        // 7. Cannot delete custom level while decisions are associated with it (409)
+        const delBlocked = await request(app)
+          .delete(`/api/decisions/levels/${levelId}`)
+          .set('Cookie', adminCookie);
+        expect(delBlocked.status).toBe(409);
+
+        // 8. Delete associated decision then delete custom administration level
+        const db = getAdapter(engine);
+        await db.execute('DELETE FROM decision WHERE decision_id = ?', [decId]);
+        const delSuccess = await request(app)
+          .delete(`/api/decisions/levels/${levelId}`)
+          .set('Cookie', adminCookie);
+        expect(delSuccess.status).toBe(200);
+      });
+
       // M7: Implementation Phase Report Archival & Retrieval (G5)
       it('Implementation Phase Report Archival and Retrieval on both engines (G5)', async () => {
         const reportTitle = `Audit Phase 1 ESG Verification ${Date.now()}`;

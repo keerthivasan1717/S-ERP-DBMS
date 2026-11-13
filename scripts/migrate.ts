@@ -44,7 +44,7 @@ export async function migrateMongo(): Promise<void> {
     const collections = [
       'phase_report', 'decision_risk', 'process_indicator', 'organization_dimension',
       'process_resource', 'employee_project', 'indicator_measurement', 'report',
-      'implementation_phase', 'risk', 'decision', 'business_process', 'resource',
+      'implementation_phase', 'risk', 'decision', 'decision_level', 'business_process', 'resource',
       'app_user', 'sustainability_indicator', 'sustainability_dimension',
       'project_task', 'project', 'employee', 'department', 'organization'
     ];
@@ -53,6 +53,7 @@ export async function migrateMongo(): Promise<void> {
     }
     await db.collection('app_user').createIndex({ username: 1 }, { unique: true }).catch(() => {});
     await db.collection('employee').createIndex({ email: 1 }, { unique: true }).catch(() => {});
+    await db.collection('decision_level').createIndex({ name: 1 }, { unique: true }).catch(() => {});
     console.log('[MongoDB] Collections & indexes initialized successfully.');
   } finally {
     await client.close();

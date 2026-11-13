@@ -57,10 +57,51 @@ export class DecisionsRepo {
     return decision;
   }
 
+  async listDecisionLevels() {
+    const levels = await this.db.query<any>(
+      `SELECT dl.level_id, dl.name, dl.description, dl.created_at,
+              COUNT(d.decision_id) AS decision_count
+       FROM decision_level dl
+       LEFT JOIN decision d ON dl.name = d.decision_level
+       GROUP BY dl.level_id, dl.name, dl.description, dl.created_at
+       ORDER BY dl.level_id ASC`
+    );
+    return levels.map((l: any) => ({
+      ...l,
+      decision_count: Number(l.decision_count || 0),
+    }));
+  }
+
+  async getDecisionLevelByName(name: string) {
+    return this.db.one<any>(
+      'SELECT level_id, name, description, created_at FROM decision_level WHERE LOWER(name) = LOWER(?)',
+      [name.trim()]
+    );
+  }
+
+  async getDecisionLevelById(levelId: number) {
+    return this.db.one<any>(
+      'SELECT level_id, name, description, created_at FROM decision_level WHERE level_id = ?',
+      [levelId]
+    );
+  }
+
+  async createDecisionLevel(data: { name: string; description?: string }) {
+    return this.db.insert(
+      'INSERT INTO decision_level (name, description) VALUES (?, ?)',
+      [data.name.trim(), data.description ? data.description.trim() : null],
+      'level_id'
+    );
+  }
+
+  async deleteDecisionLevel(levelId: number) {
+    await this.db.execute('DELETE FROM decision_level WHERE level_id = ?', [levelId]);
+  }
+
   async createDecision(data: {
     title: string;
     description?: string;
-    decision_level: 'Strategic' | 'Tactical' | 'Operational';
+    decision_level: string;
     date: string;
     created_by: number;
     project_id?: number | null;
@@ -86,7 +127,7 @@ export class DecisionsRepo {
     data: {
       title: string;
       description?: string;
-      decision_level: 'Strategic' | 'Tactical' | 'Operational';
+      decision_level: string;
       date: string;
       project_id?: number | null;
       process_id?: number | null;
