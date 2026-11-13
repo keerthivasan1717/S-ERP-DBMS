@@ -37,7 +37,8 @@ export async function checkMysqlStatus(): Promise<EngineStatus> {
       user: env.MYSQL_USER,
       password: env.MYSQL_PASSWORD,
       database: env.MYSQL_DATABASE,
-      connectTimeout: 3000,
+      connectTimeout: 5000,
+      ssl: env.MYSQL_SSL ? { minVersion: 'TLSv1.2', rejectUnauthorized: true } : undefined,
     });
 
     try {
@@ -67,8 +68,10 @@ export async function checkMongoStatus(): Promise<EngineStatus> {
     version: null,
   };
 
-  const uri = `mongodb://${env.MONGO_USER}:${env.MONGO_PASSWORD}@${env.MONGO_HOST}:${env.MONGO_PORT}/${env.MONGO_DATABASE}?authSource=admin`;
-  const client = new MongoClient(uri, { serverSelectionTimeoutMS: 3000 });
+  const uri =
+    env.MONGO_URI ||
+    `mongodb://${env.MONGO_USER}:${env.MONGO_PASSWORD}@${env.MONGO_HOST}:${env.MONGO_PORT}/${env.MONGO_DATABASE}?authSource=admin`;
+  const client = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 });
 
   try {
     await client.connect();

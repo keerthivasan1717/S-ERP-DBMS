@@ -16,12 +16,14 @@ export async function seedMySQL(options: SeedOptions = {}): Promise<void> {
     await migrateMySQL();
   }
 
+  const useSsl = process.env.MYSQL_SSL === 'true' || process.env.MYSQL_SSL === '1';
   const connection = await mysql.createConnection({
     host: process.env.MYSQL_HOST || '127.0.0.1',
     port: Number(process.env.MYSQL_PORT) || 3307,
     user: process.env.MYSQL_USER || 'serp',
     password: process.env.MYSQL_PASSWORD || 'serp_password',
     database: process.env.MYSQL_DATABASE || 'serp',
+    ssl: useSsl ? { minVersion: 'TLSv1.2', rejectUnauthorized: true } : undefined,
   });
 
   try {
@@ -59,12 +61,10 @@ export async function seedMongo(options: SeedOptions = {}): Promise<void> {
     await migrateMongo();
   }
 
-  const host = process.env.MONGO_HOST || '127.0.0.1';
-  const port = Number(process.env.MONGO_PORT) || 27017;
   const dbName = process.env.MONGO_DATABASE || 'serp';
-  const user = process.env.MONGO_USER || 'serp';
-  const pass = process.env.MONGO_PASSWORD || 'serp_password';
-  const uri = `mongodb://${user}:${pass}@${host}:${port}/${dbName}?authSource=admin`;
+  const uri =
+    process.env.MONGO_URI ||
+    `mongodb://${process.env.MONGO_USER || 'serp'}:${process.env.MONGO_PASSWORD || 'serp_password'}@${process.env.MONGO_HOST || '127.0.0.1'}:${Number(process.env.MONGO_PORT) || 27017}/${dbName}?authSource=admin`;
   const client = new MongoClient(uri);
 
   try {

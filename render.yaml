@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: s-erp-dbms
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: MYSQL_HOST
+        value: gateway01.ap-northeast-1.prod.aws.tidbcloud.com
+      - key: MYSQL_PORT
+        value: "4000"
+      - key: MYSQL_DATABASE
+        value: serp
+      - key: MYSQL_USER
+        value: 3h1vg8v3Y6iSBzW.root
+      - key: MYSQL_PASSWORD
+        sync: false
+      - key: MYSQL_SSL
+        value: "true"
+      - key: MONGO_URI
+        sync: false
